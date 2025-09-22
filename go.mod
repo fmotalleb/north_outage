@@ -14,10 +14,11 @@ require (
 	github.com/fmotalleb/scrapper-go v0.4.5
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-telegram/bot v1.17.0
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/mshafiee/jalali v1.1.0
-	github.com/playwright-community/playwright-go v0.5200.0
+	github.com/playwright-community/playwright-go v0.5200.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cast v1.9.2
 	github.com/spf13/cobra v1.10.1
@@ -261,7 +262,6 @@ require (
 	github.com/google/rpmpack v0.7.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/safetext v0.0.0-20240722112252-5a72de7e7962 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/google/wire v0.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.2 // indirect
