@@ -125,7 +125,7 @@ var replacements = map[rune]rune{
 	'٨': '8',
 	'٩': '9',
 }
-var sanitizer = regexp.MustCompile("\\s\\s+")
+var sanitizer = regexp.MustCompile(`\s\s+`)
 
 func persianFixer(input string) string {
 	var b strings.Builder

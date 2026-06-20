@@ -3,16 +3,17 @@ package service
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/fmotalleb/go-tools/broadcast"
 	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 
 	"github.com/fmotalleb/north_outage/config"
 	"github.com/fmotalleb/north_outage/database"
 	"github.com/fmotalleb/north_outage/models"
+	"github.com/fmotalleb/north_outage/telegram"
 	"github.com/fmotalleb/north_outage/web"
 )
 
@@ -37,46 +38,51 @@ func Serve(ctx context.Context) error {
 	}
 	l.Info("config initialized", zap.Any("cfg", cfg))
 	ec := make(chan models.Event, eventsChannelBufferSize)
-	wg := new(sync.WaitGroup)
+	wg, ctx := errgroup.WithContext(ctx)
 	wg.Go(
-		func() {
+		func() error {
 			err := web.Start(ctx, cfg)
 			if err != nil {
 				l.Error("api server collapsed", zap.Error(err))
-				panic(fmt.Errorf("api server unrecoverable exception: %w", err))
+				return fmt.Errorf("api server unrecoverable exception: %w", err)
 			}
+			return nil
 		},
 	)
 
 	bc := broadcast.NewBroadcaster[models.Notification](l)
 	wg.Go(
-		func() {
+		func() error {
 			ch := eventToNotificationTransformer(ctx, db, ec)
 			bc.BindTo(ch)
+			return nil
 		},
 	)
 	wg.Go(
-		func() {
+		func() error {
 			err := startCollector(ctx, cfg, ec)
 			if err != nil {
 				l.Error("scheduler service collapsed", zap.Error(err))
-				panic(fmt.Errorf("scheduler service unrecoverable exception: %w", err))
+				return fmt.Errorf("scheduler service unrecoverable exception: %w", err)
 			}
+			return nil
 		},
 	)
+	if cfg.Telegram.BotKey != "" {
+		wg.Go(
+			func() error {
+				_, ch := bc.Subscribe(notificationBufferSize)
+				err := telegram.Run(ctx, cfg, ch)
+				if err != nil {
+					l.Error("telegram service collapsed", zap.Error(err))
+					return fmt.Errorf("telegram service unrecoverable exception: %w", err)
+				}
+				return nil
+			},
+		)
+	}
 
-	// wg.Go(
-	// 	func() {
-	// 		_, ch := bc.Subscribe(notificationBufferSize)
-	// 		err := telegram.Run(ctx, cfg, ch)
-	// 		if err != nil {
-	// 			l.Error("telegram service collapsed", zap.Error(err))
-	// 			panic(fmt.Errorf("telegram service unrecoverable exception: %w", err))
-	// 		}
-	// 	},
-	// )
-	wg.Wait()
-	return nil
+	return wg.Wait()
 }
 
 func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event) <-chan models.Notification {

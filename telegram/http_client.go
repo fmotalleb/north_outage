@@ -8,15 +8,15 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-func httpClient(proxyUrl *url.URL) *http.Client {
+func httpClient(proxyURL *url.URL) *http.Client {
 	dialer := proxy.FromEnvironmentUsing(proxy.Direct)
 
-	if proxyUrl != nil {
-		if d, err := proxy.FromURL(proxyUrl, dialer); err != nil {
+	if proxyURL != nil {
+		d, err := proxy.FromURL(proxyURL, dialer)
+		if err != nil {
 			panic("failed to use given url as proxy")
-		} else {
-			dialer = d
 		}
+		dialer = d
 	}
 
 	transport := &http.Transport{

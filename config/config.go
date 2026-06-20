@@ -28,8 +28,8 @@ type Config struct {
 }
 
 type Telegram struct {
-	BotKey   string        `mapstructure:"key" env:"TELEGRAM_BOT" validate:"required"`
+	BotKey   string        `mapstructure:"key" env:"TELEGRAM_BOT"`
 	Timeout  time.Duration `mapstructure:"timeout" env:"TELEGRAM_BOT_TIMEOUT" default:"30s" validate:"required"`
-	Proxy    url.URL       `mapstructure:"proxy" env:"TELEGRAM_BOT_PROXY"`
+	Proxy    *url.URL      `mapstructure:"proxy" env:"TELEGRAM_BOT_PROXY"`
 	Endpoint url.URL       `mapstructure:"api" env:"TELEGRAM_BOT_ENDPOINT" default:"https://api.telegram.org" validate:"required"`
 }

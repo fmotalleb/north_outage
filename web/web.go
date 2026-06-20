@@ -20,7 +20,7 @@ func RegisterEndpoint(register func(*echo.Echo)) {
 }
 
 func init() {
-	server.Use(middleware.Logger())
+	server.Use(middleware.RequestLogger())
 	server.Use(middleware.Recover())
 }
 

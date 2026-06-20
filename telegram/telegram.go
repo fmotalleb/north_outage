@@ -24,7 +24,7 @@ func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) err
 	}
 
 	var opts []bot.Option
-	client := httpClient(&tel.Proxy)
+	client := httpClient(tel.Proxy)
 
 	hc := bot.WithHTTPClient(time.Second*30, client)
 	opts = append(opts, hc)
@@ -50,7 +50,12 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 			sp.ChatID = n.Listener.TelegramCID
 			sp.MessageThreadID = int(n.Listener.TelegramTID)
 			sp.Text = n.Event.Address
-			b.SendMessage(ctx, sp)
+			m, err := b.SendMessage(ctx, sp)
+			if err != nil {
+				l.Error("failed to send message to telegram", zap.Error(err))
+			} else {
+				l.Debug("telegram message sent", zap.Int("message_id", m.ID))
+			}
 		case <-ctx.Done():
 			return
 		}

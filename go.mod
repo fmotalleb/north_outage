@@ -10,7 +10,7 @@ tool (
 
 require (
 	github.com/fmotalleb/go-tools v0.1.73
-	github.com/fmotalleb/scrapper-go v0.4.5
+	github.com/fmotalleb/scrapper-go v0.4.6
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-telegram/bot v1.21.0
 	github.com/google/uuid v1.6.0
