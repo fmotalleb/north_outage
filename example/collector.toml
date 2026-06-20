@@ -3,7 +3,7 @@
 browser = "chromium"
 
 [collector.pipeline.browser_params]
-headless = true
+headless = false
 
 [[collector.pipeline.steps]]
 
@@ -20,7 +20,7 @@ sleep = "1s"
 [[collector.pipeline.steps]]
 loop = """
 {{ eval `JSON.stringify(
-  [...document.querySelectorAll('#ContentPlaceHolder1_ddlArea > option')]
+  [...document.querySelectorAll('#ContentPlaceHolder1_ddlCity > option')]
   .map((a) =>  a.getAttribute('value'))
   .filter((a) => a!='-1' )
   )`
@@ -38,10 +38,10 @@ click = "#ContentPlaceHolder1_rbIsAddress"
 sleep = "50ms"
 
 [[collector.pipeline.steps.steps]]
-click = "#ContentPlaceHolder1_ddlArea"
+click = "#ContentPlaceHolder1_ddlCity"
 
 [[collector.pipeline.steps.steps]]
-select = "#ContentPlaceHolder1_ddlArea"
+select = "#ContentPlaceHolder1_ddlCity"
 values = "{{ addr }}"
 on-error = "ignore"
 
@@ -55,7 +55,7 @@ click = "#ContentPlaceHolder1_btnSearchOutage"
 element = "#ContentPlaceHolder1_grdOutages"
 on-error = "ignore"
 mode = "table"
-set-var = '{{ eval "ContentPlaceHolder1_ddlArea.selectedOptions[0].text" }}'
+set-var = '{{ eval "ContentPlaceHolder1_ddlCity.selectedOptions[0].text" }}'
 
 [[collector.pipeline.steps]]
 loop = """
@@ -68,28 +68,28 @@ loop = """
 loop-key = "city"
 on-error = "ignore"
 
-[[collector.pipeline.steps.steps]]
-goto = "https://khamooshi.maztozi.ir/"
+# [[collector.pipeline.steps.steps]]
+# goto = "https://khamooshi.maztozi.ir/"
 
-[[collector.pipeline.steps.steps]]
-click = "#ContentPlaceHolder1_rbIsAddress"
+# [[collector.pipeline.steps.steps]]
+# click = "#ContentPlaceHolder1_rbIsAddress"
 
-[[collector.pipeline.steps.steps]]
-click = "#ContentPlaceHolder1_ddlCity"
+# [[collector.pipeline.steps.steps]]
+# click = "#ContentPlaceHolder1_ddlCity"
 
-[[collector.pipeline.steps.steps]]
-select = "#ContentPlaceHolder1_ddlCity"
-values = "{{ city }}"
-on-error = "ignore"
+# [[collector.pipeline.steps.steps]]
+# select = "#ContentPlaceHolder1_ddlCity"
+# values = "{{ city }}"
+# on-error = "ignore"
 
-[[collector.pipeline.steps.steps]]
-sleep = "1s"
+# [[collector.pipeline.steps.steps]]
+# sleep = "1s"
 
-[[collector.pipeline.steps.steps]]
-nop = """
-{{ eval `[...document.querySelectorAll('#ContentPlaceHolder1_ddlArea > option')]
-  .map((a) =>  a.innerText)
-  .filter((a) => !a.startsWith("--") )
-  .join(",")`
-}}"""
-set-var = 'map.{{ eval "ContentPlaceHolder1_ddlCity.selectedOptions[0].text" }}'
+# [[collector.pipeline.steps.steps]]
+# nop = """
+# {{ eval `[...document.querySelectorAll('#ContentPlaceHolder1_ddlArea > option')]
+#   .map((a) =>  a.innerText)
+#   .filter((a) => !a.startsWith("--") )
+#   .join(",")`
+# }}"""
+# set-var = 'map.{{ eval "ContentPlaceHolder1_ddlCity.selectedOptions[0].text" }}'

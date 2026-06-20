@@ -13,7 +13,6 @@ import (
 	"github.com/fmotalleb/north_outage/config"
 	"github.com/fmotalleb/north_outage/database"
 	"github.com/fmotalleb/north_outage/models"
-	"github.com/fmotalleb/north_outage/telegram"
 	"github.com/fmotalleb/north_outage/web"
 )
 
@@ -66,16 +65,16 @@ func Serve(ctx context.Context) error {
 		},
 	)
 
-	wg.Go(
-		func() {
-			_, ch := bc.Subscribe(notificationBufferSize)
-			err := telegram.Run(ctx, cfg, ch)
-			if err != nil {
-				l.Error("telegram service collapsed", zap.Error(err))
-				panic(fmt.Errorf("telegram service unrecoverable exception: %w", err))
-			}
-		},
-	)
+	// wg.Go(
+	// 	func() {
+	// 		_, ch := bc.Subscribe(notificationBufferSize)
+	// 		err := telegram.Run(ctx, cfg, ch)
+	// 		if err != nil {
+	// 			l.Error("telegram service collapsed", zap.Error(err))
+	// 			panic(fmt.Errorf("telegram service unrecoverable exception: %w", err))
+	// 		}
+	// 	},
+	// )
 	wg.Wait()
 	return nil
 }
