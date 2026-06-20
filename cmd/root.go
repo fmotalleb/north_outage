@@ -22,7 +22,6 @@ import (
 
 	"github.com/fmotalleb/go-tools/git"
 	"github.com/fmotalleb/go-tools/log"
-	"github.com/fmotalleb/go-tools/sysctx"
 	"github.com/spf13/cobra"
 
 	"github.com/fmotalleb/north_outage/config"
@@ -45,7 +44,7 @@ var rootCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		ctx := context.Background()
-		ctx = sysctx.CancelWith(ctx, os.Interrupt, os.Kill)
+		// ctx = (ctx, os.Interrupt, os.Kill)
 		var err error
 		if ctx, err = log.WithNewEnvLogger(ctx); err != nil {
 			return err
