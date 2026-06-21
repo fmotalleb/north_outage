@@ -158,7 +158,7 @@ export default function App() {
                 راهنما
               </h3>
               <ul className="text-xs text-slate-400 space-y-1.5 leading-relaxed">
-                <li>· روی «جزئیات» هر رویداد بزنید تا دما و رطوبت هوا در بازه قطعی نمایش داده شود.</li>
+                <li>· روی «جزئیات» هر رویداد بزنید تا دما، رطوبت و پوشش ابر در بازه قطعی نمایش داده شود.</li>
                 <li>· ارائه‌دهنده آب و هوا از ستون سمت راست قابل تغییر است.</li>
                 <li>· فیلترها به‌صورت زنده روی نتایج اعمال می‌شوند.</li>
                 <li>· وضعیت‌ها هر ۳۰ ثانیه به‌روزرسانی می‌شوند.</li>
@@ -168,8 +168,26 @@ export default function App() {
         </div>
 
         <footer className="text-center text-[11px] text-slate-500 pt-4 pb-2">
-          داده‌ها از سرویس محلی <code className="text-slate-400">/events</code> دریافت می‌شوند.
-          زمان‌ها بر اساس منطقه زمانی مرورگر شما نمایش داده می‌شوند.
+          CopyRight{" "}
+          <a
+            className="text-slate-400 hover:text-cyan-300 transition"
+            href="https://t.me/fmotalleb"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @fmotalleb
+          </a>
+          <br />
+          داده‌ها از سرویس{" "}
+          <a
+            className="text-slate-400 hover:text-cyan-300 transition"
+            href="https://khamooshi.maztozi.ir/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            https://khamooshi.maztozi.ir
+          </a>{" "}
+          دریافت می‌شوند.
         </footer>
       </div>
     </div>

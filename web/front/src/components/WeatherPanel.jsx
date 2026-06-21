@@ -1,9 +1,8 @@
 import { useWeather } from '../hooks/useWeather'
 import { getCoords } from '../data/cityCoordinates'
-import { formatTimeOnly, formatDateOnly } from '../utils/dateUtils'
+import { formatTimeOnly } from '../utils/dateUtils'
 
 function WeatherIcon({ code }) {
-  // code: 'temp' | 'humidity'
   if (code === 'temp') {
     return (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -11,11 +10,28 @@ function WeatherIcon({ code }) {
       </svg>
     )
   }
+  if (code === 'cloud') {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.78A6 6 0 0 0 5 13.5 4.5 4.5 0 0 0 6.5 22h11z" />
+      </svg>
+    )
+  }
+  // humidity
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
     </svg>
   )
+}
+
+function CloudDescription(pct) {
+  if (pct == null) return '—'
+  if (pct < 10) return 'صاف'
+  if (pct < 30) return 'کمی ابری'
+  if (pct < 60) return 'نیمه ابری'
+  if (pct < 85) return 'ابری'
+  return 'تمام ابری'
 }
 
 export default function WeatherPanel({ providerId, outage }) {
@@ -31,9 +47,10 @@ export default function WeatherPanel({ providerId, outage }) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-2 mt-3">
-        <div className="h-12 rounded-lg shimmer" />
-        <div className="h-12 rounded-lg shimmer" />
+      <div className="grid grid-cols-3 gap-2 mt-3">
+        <div className="h-14 rounded-lg shimmer" />
+        <div className="h-14 rounded-lg shimmer" />
+        <div className="h-14 rounded-lg shimmer" />
       </div>
     )
   }
@@ -57,51 +74,72 @@ export default function WeatherPanel({ providerId, outage }) {
   }
 
   const fmt = (v, digits = 1) => (Number.isFinite(v) ? v.toFixed(digits) : '—')
-  const temps = data.sampled.map((s) => s.temp).filter((v) => Number.isFinite(v))
-  const hums = data.sampled.map((s) => s.humidity).filter((v) => Number.isFinite(v))
-  const peakTemp = temps.length ? Math.max(...temps) : null
-  const peakHum = hums.length ? Math.max(...hums) : null
-  const minTemp = temps.length ? Math.min(...temps) : null
+  const cloudPct = data.avgCloud
+  const cloudDesc = CloudDescription(cloudPct)
 
   return (
     <div className="mt-3">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
+        {/* Temperature */}
         <div className="rounded-lg bg-gradient-to-l from-orange-500/10 to-rose-500/10 border border-orange-400/20 px-3 py-2">
           <div className="flex items-center gap-1.5 text-orange-300">
             <WeatherIcon code="temp" />
-            <span className="text-[11px]">دما (میانگین)</span>
+            <span className="text-[11px]">دما</span>
           </div>
           <div className="mt-0.5 text-lg font-bold text-orange-100">
             {fmt(data.avgTemp)}°C
           </div>
-          {Number.isFinite(minTemp) && Number.isFinite(peakTemp) && (
-            <div className="text-[10px] text-slate-400 mt-0.5">
-              بازه {fmt(minTemp)}° – {fmt(peakTemp)}°
-            </div>
+          {Number.isFinite(data.peakTemp) && (
+            <div className="text-[10px] text-slate-400 mt-0.5">اوج {fmt(data.peakTemp)}°</div>
           )}
         </div>
+
+        {/* Humidity */}
         <div className="rounded-lg bg-gradient-to-l from-cyan-500/10 to-blue-500/10 border border-cyan-400/20 px-3 py-2">
           <div className="flex items-center gap-1.5 text-cyan-300">
             <WeatherIcon code="humidity" />
-            <span className="text-[11px]">رطوبت (میانگین)</span>
+            <span className="text-[11px]">رطوبت</span>
           </div>
           <div className="mt-0.5 text-lg font-bold text-cyan-100">
             {fmt(data.avgHumidity, 0)}%
           </div>
-          {Number.isFinite(peakHum) && (
-            <div className="text-[10px] text-slate-400 mt-0.5">
-              اوج {fmt(peakHum, 0)}%
-            </div>
+          {Number.isFinite(data.peakHumidity) && (
+            <div className="text-[10px] text-slate-400 mt-0.5">اوج {fmt(data.peakHumidity, 0)}%</div>
+          )}
+        </div>
+
+        {/* Cloud cover */}
+        <div className="rounded-lg bg-gradient-to-l from-slate-400/10 to-slate-600/10 border border-slate-400/20 px-3 py-2">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <WeatherIcon code="cloud" />
+            <span className="text-[11px]">ابر</span>
+          </div>
+          <div className="mt-0.5 text-lg font-bold text-slate-100">
+            {Number.isFinite(cloudPct) ? fmt(cloudPct, 0) + '%' : '—'}
+          </div>
+          {Number.isFinite(cloudPct) && (
+            <div className="text-[10px] text-slate-400 mt-0.5">{cloudDesc}</div>
           )}
         </div>
       </div>
 
+      {/* Cloud cover bar */}
+      {Number.isFinite(cloudPct) && (
+        <div className="mt-2 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-l from-cyan-400 via-slate-300 to-slate-500 transition-all"
+            style={{ width: `${Math.max(2, Math.min(100, cloudPct))}%` }}
+          />
+        </div>
+      )}
+
+      {/* Per-hour timeline */}
       {data.sampled.length > 1 && (
-        <div className="mt-2 flex items-center gap-1 overflow-x-auto pb-1">
+        <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
           {data.sampled.slice(0, 8).map((s, i) => (
             <div
               key={i}
-              className="shrink-0 text-[10px] text-slate-300 bg-white/5 border border-white/10 rounded-md px-2 py-1"
+              className="shrink-0 text-[10px] text-slate-300 bg-white/5 border border-white/10 rounded-md px-2 py-1 min-w-[64px]"
               title={s.time}
             >
               <div className="font-medium">{formatTimeOnly(s.time)}</div>
@@ -110,6 +148,9 @@ export default function WeatherPanel({ providerId, outage }) {
               </div>
               <div className="text-cyan-300">
                 {Number.isFinite(s.humidity) ? `${s.humidity.toFixed(0)}%` : '—'}
+              </div>
+              <div className="text-slate-300">
+                {Number.isFinite(s.cloud) ? `${s.cloud.toFixed(0)}%☁` : '—'}
               </div>
             </div>
           ))}

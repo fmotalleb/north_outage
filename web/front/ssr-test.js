@@ -129,7 +129,7 @@ const selHtml = renderToString(
 )
 assert('Selector lists Open-Meteo', selHtml.includes('Open-Meteo'))
 assert('Selector lists Met.no', selHtml.includes('Met.no'))
-assert('Selector lists 7Timer!', selHtml.includes('7Timer!'))
+assert('Selector does not list 7Timer!', !selHtml.includes('7Timer!'))
 assert('Selector mentions no API key', selHtml.includes('کلید'))
 
 // App

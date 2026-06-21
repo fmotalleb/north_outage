@@ -97,7 +97,7 @@ export default function FilterBar({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="chip bg-white/5 border border-white/10 text-slate-300">
+          <span height="18" className="chip bg-white/5 border border-white/10 text-slate-300">
             {resultCount.toLocaleString('fa-IR')} نتیجه
           </span>
           <button className="btn-ghost" onClick={reset} type="button">

@@ -6,6 +6,7 @@ import (
 )
 
 //go:generate pnpm i
+//go:generate pnpm approve-builds --all
 //go:generate pnpm run build
 //go:generate touch dist/.gitkeep
 
