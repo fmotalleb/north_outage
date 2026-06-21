@@ -27,7 +27,16 @@ jobs:
         with:
           go-version: "1.26"
           check-latest: true
+      # Added Node + PNPM via Corepack
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
 
+      - name: Enable pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+          pnpm --version
       - name: Build
         run: make ci
       # - name: Upload coverage

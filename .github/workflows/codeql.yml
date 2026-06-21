@@ -38,7 +38,15 @@ jobs:
       with:
         go-version: '1.26'
         check-latest: true
-
+    # Added Node + PNPM via Corepack
+    - uses: actions/setup-node@v6
+      with:
+        node-version: "24"
+    - name: Enable pnpm via corepack
+      run: |
+        corepack enable
+        corepack prepare pnpm@latest --activate
+        pnpm --version
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3 # v3.29.5
