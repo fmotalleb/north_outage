@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//# go:build orm-sqllite
+//# go:build orm-sqlite
 
 func init() {
 	builders["sqlite"] = sqliteBuilder
