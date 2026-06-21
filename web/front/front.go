@@ -7,6 +7,7 @@ import (
 
 //go:generate pnpm i
 //go:generate pnpm run build
+//go:generate touch dist/.gitkeep
 
 //go:embed dist/*
 var distFS embed.FS

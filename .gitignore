@@ -44,3 +44,5 @@ __*
 *.local.*
 
 /north_outage
+node_modules/
+dist/
