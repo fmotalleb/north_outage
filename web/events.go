@@ -13,7 +13,7 @@ import (
 func init() {
 	RegisterEndpoint(
 		func(api *echo.Echo) {
-			api.GET("/events", events)
+			api.GET("/api/events", events)
 		},
 	)
 }

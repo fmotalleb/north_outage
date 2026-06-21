@@ -5,8 +5,8 @@ import (
 	"io/fs"
 )
 
-//go:generate npm i
-//go:generate npm run build
+//go:generate pnpm i
+//go:generate pnpm run build
 
 //go:embed dist/*
 var distFS embed.FS

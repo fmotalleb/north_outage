@@ -9,7 +9,7 @@ import (
 func init() {
 	RegisterEndpoint(
 		func(api *echo.Echo) {
-			api.GET("/up", up)
+			api.GET("/api/up", up)
 		},
 	)
 }
