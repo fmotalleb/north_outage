@@ -5,7 +5,7 @@ include = [
 # telegram_bot = ""
 # database = "sqlite://outage.db"
 collect_cycle = "@hourly"
-max_age = "1h"
+# max_age = "1h"
 
 collect_on_start = true
 collect_on_start_threshold = "1s"

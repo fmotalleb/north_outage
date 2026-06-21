@@ -174,7 +174,7 @@ async function fetchMetNo({ lat, lon, startISO, endISO, signal }) {
         time: entry.time,
         temp: inst.air_temperature ?? null,
         humidity: inst.relative_humidity ?? null,
-        // Met.no gives total cloud cover as fraction (0–1). Convert to %.
+        // Met.no's cloud_area_fraction is already in percent (0–100).
         cloud: Number.isFinite(inst.cloud_area_fraction)
           ? Math.round(inst.cloud_area_fraction)
           : null,
@@ -198,7 +198,7 @@ async function fetchMetNo({ lat, lon, startISO, endISO, signal }) {
     peakHumidity: validHums.length ? Math.max(...validHums) : null,
     peakCloud: validClouds.length ? Math.max(...validClouds) : null,
     minCloud: validClouds.length ? Math.min(...validClouds) : null,
-    note: 'فقط دیتای هواشناسی تا ۳ روز آینده موجود است.',
+    note: 'Met.no فقط حدود ۳ روز آینده را پیش‌بینی می‌کند. برای قطعی‌های گذشته ممکن است داده‌ای موجود نباشد.',
   }
 }
 
@@ -206,18 +206,18 @@ async function fetchMetNo({ lat, lon, startISO, endISO, signal }) {
 
 export const WEATHER_PROVIDERS = [
   {
-    id: 'met-no',
-    name: 'Met.no',
-    description: 'رایگان بدون نیاز به کلید API، فقط دیتای روز‌های آینده تا ۳ روز در دسترس است.',
-    homepage: 'https://api.met.no',
-    fetch: fetchMetNo,
-  },
-  {
     id: 'open-meteo',
     name: 'Open-Meteo',
-    description: 'رایگان بدون نیاز به کلید API، دارای داده هواشناسی زمان گذشته.',
+    description: 'Free, no API key. Best historical + forecast coverage worldwide.',
     homepage: 'https://open-meteo.com',
     fetch: fetchOpenMeteo,
+  },
+  {
+    id: 'met-no',
+    name: 'Met.no',
+    description: 'Free, no key. Forecast window ~3 days.',
+    homepage: 'https://api.met.no',
+    fetch: fetchMetNo,
   },
 ]
 

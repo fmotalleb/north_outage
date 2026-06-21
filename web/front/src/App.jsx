@@ -1,45 +1,62 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import OutageList from './components/OutageList'
 import WeatherProviderSelector from './components/WeatherProviderSelector'
 import { useOutages } from './hooks/useOutages'
+import { useUrlState } from './hooks/useUrlState'
+import { getKnownCities } from './data/cityCoordinates'
 import { outageStatus, durationMinutes } from './utils/dateUtils'
 
-const STORAGE_KEY = 'outage-tracker.v1'
+// URL schema: city has no whitelist (we accept any of the known Persian
+// names from /api/events); status/date/sort/provider have whitelists;
+// q is a free-text search capped at 200 chars.
+const URL_SCHEMA = {
+  city: { default: 'all' },
+  status: { default: 'all', values: ['all', 'active', 'upcoming', 'past'] },
+  date: { default: 'all', values: ['all', 'today', 'tomorrow', 'week'] },
+  sort: { default: 'start_asc', values: ['start_asc', 'start_desc', 'duration_desc', 'city'] },
+  provider: { default: 'open-meteo', values: ['open-meteo', 'met-no'] },
+  q: { default: '', maxLength: 200 },
+}
+
+const DEFAULTS = {
+  city: 'all',
+  status: 'all',
+  q: '',
+  date: 'all',
+  sort: 'start_asc',
+  provider: 'open-meteo',
+}
 
 export default function App() {
   const { outages, error, loading, refresh } = useOutages()
-  const [filters, setFilters] = useState({ city: 'all', status: 'all', q: '', date: 'all' })
-  const [sort, setSort] = useState('start_asc')
-  const [expandedId, setExpandedId] = useState(null)
-  const [providerId, setProviderId] = useState('open-meteo')
+  const [urlState, updateUrl] = useUrlState(URL_SCHEMA)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [now, setNow] = useState(() => new Date())
-  const initialPersist = useRef(true)
 
-  // Restore persisted preferences (provider id only — keep filters per-session)
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const p = JSON.parse(raw)
-        if (p.providerId) setProviderId(p.providerId)
-      }
-    } catch (_) { /* ignore */ }
-  }, [])
+  // Derive UI state from urlState (single source of truth = URL)
+  const filters = useMemo(() => ({
+    city: urlState.city ?? DEFAULTS.city,
+    status: urlState.status ?? DEFAULTS.status,
+    q: urlState.q ?? DEFAULTS.q,
+    date: urlState.date ?? DEFAULTS.date,
+  }), [urlState])
 
-  useEffect(() => {
-    if (initialPersist.current) {
-      initialPersist.current = false
-      return
-    }
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ providerId }))
-    } catch (_) { /* ignore */ }
-  }, [providerId])
+  const sort = urlState.sort ?? DEFAULTS.sort
+  const providerId = urlState.provider ?? DEFAULTS.provider
+  const expandedId = urlState.open ?? null
 
-  // Tick "now" so active/upcoming/past recompute every minute
+  // Setters → write back to URL via useUrlState
+  const setFilters = (patch) => {
+    if (typeof patch === 'function') patch = patch(filters)
+    updateUrl(patch)
+  }
+  const setSort = (v) => updateUrl({ sort: v })
+  const setProviderId = (v) => updateUrl({ provider: v })
+  const setExpandedId = (v) => updateUrl({ open: v })
+
+  // Tick "now" so active/upcoming/past recompute every 30s
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000)
     return () => clearInterval(id)
@@ -50,10 +67,12 @@ export default function App() {
     if (!loading && !error) setLastUpdated(new Date())
   }, [loading, error])
 
+  // Show all known Mazandaran cities in the dropdown by default, plus any
+  // extra ones that appear in the live data (in case of new cities).
   const cities = useMemo(() => {
-    const s = new Set()
-    outages.forEach((o) => o.city && s.add(o.city))
-    return Array.from(s).sort((a, b) => a.localeCompare(b, 'fa'))
+    const known = new Set(getKnownCities())
+    outages.forEach((o) => o.city && known.add(o.city))
+    return Array.from(known).sort((a, b) => a.localeCompare(b, 'fa'))
   }, [outages])
 
   const counts = useMemo(() => {
@@ -132,6 +151,7 @@ export default function App() {
               sort={sort}
               setSort={setSort}
               resultCount={sorted.length}
+              totalCount={counts.total}
               onRefresh={refresh}
               loading={loading}
             />
@@ -158,10 +178,10 @@ export default function App() {
                 راهنما
               </h3>
               <ul className="text-xs text-slate-400 space-y-1.5 leading-relaxed">
-                <li>· روی «جزئیات» هر رویداد بزنید تا دما، رطوبت و پوشش ابر در بازه قطعی نمایش داده شود.</li>
+                <li>· روی «هواشناسی» هر رویداد بزنید تا دما، رطوبت و پوشش ابر در بازه قطعی نمایش داده شود.</li>
                 <li>· ارائه‌دهنده آب و هوا از ستون سمت راست قابل تغییر است.</li>
-                <li>· فیلترها به‌صورت زنده روی نتایج اعمال می‌شوند.</li>
-                <li>· وضعیت‌ها هر ۳۰ ثانیه به‌روزرسانی می‌شوند.</li>
+                <li>· فیلترها در نشانی صفحه ذخیره می‌شوند و قابل اشتراک‌گذاری هستند.</li>
+                <li>· لیست شهرها شامل همه شهرهای مازندران است، حتی اگر در حال حاضر قطعی نداشته باشند.</li>
               </ul>
             </section>
           </aside>

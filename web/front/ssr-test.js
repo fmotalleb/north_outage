@@ -61,6 +61,7 @@ const filterHtml = renderToString(
     sort: 'start_asc',
     setSort: () => {},
     resultCount: 7,
+    totalCount: 12,
     onRefresh: () => {},
     loading: false,
   })
@@ -74,7 +75,7 @@ assert('FilterBar dropdown trigger for date', filterHtml.includes('همه تار
 assert('FilterBar dropdown trigger for sort', filterHtml.includes('نزدیک‌ترین'))
 assert('FilterBar has refresh button', filterHtml.includes('بروزرسانی'))
 assert('FilterBar has reset button', filterHtml.includes('پاک کردن فیلترها'))
-assert('FilterBar shows result count', filterHtml.includes('7') && filterHtml.includes('نتیجه'))
+assert('FilterBar shows result count', filterHtml.includes('۷') && filterHtml.includes('از') && filterHtml.includes('۱۲'))
 
 // Dropdown component
 const dropdownHtml = renderToString(
@@ -118,7 +119,7 @@ assert('Card shows address', cardHtml.includes('چمازکتی') || cardHtml.inc
 assert('Card shows status badge', cardHtml.includes('پیش‌رو') || cardHtml.includes('در جریان') || cardHtml.includes('پایان‌یافته'))
 assert('Card shows start time block', cardHtml.includes('شروع قطعی'))
 assert('Card shows end time block', cardHtml.includes('پایان قطعی'))
-assert('Card has expand button', cardHtml.includes('جزئیات'))
+assert('Card has weather button', cardHtml.includes('هواشناسی'))
 
 // WeatherProviderSelector
 const selHtml = renderToString(

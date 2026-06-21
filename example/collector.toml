@@ -85,11 +85,11 @@ set-var = '{{ eval "ContentPlaceHolder1_ddlCity.selectedOptions[0].text" }}'
 # [[collector.pipeline.steps.steps]]
 # sleep = "1s"
 
-# [[collector.pipeline.steps.steps]]
-# nop = """
-# {{ eval `[...document.querySelectorAll('#ContentPlaceHolder1_ddlArea > option')]
-#   .map((a) =>  a.innerText)
-#   .filter((a) => !a.startsWith("--") )
-#   .join(",")`
-# }}"""
-# set-var = 'map.{{ eval "ContentPlaceHolder1_ddlCity.selectedOptions[0].text" }}'
+[[collector.pipeline.steps.steps]]
+nop = """
+{{ eval `[...document.querySelectorAll('#ContentPlaceHolder1_ddlArea > option')]
+  .map((a) =>  a.innerText)
+  .filter((a) => !a.startsWith("--") )
+  .join(",")`
+}}"""
+set-var = 'map.{{ eval "ContentPlaceHolder1_ddlCity.selectedOptions[0].text" }}'

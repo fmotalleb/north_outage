@@ -7,6 +7,7 @@ export default function FilterBar({
   sort,
   setSort,
   resultCount,
+  totalCount,
   onRefresh,
   loading,
 }) {
@@ -34,6 +35,12 @@ export default function FilterBar({
     { value: 'duration_desc', label: 'مدت: طولانی‌ترین' },
     { value: 'city', label: 'شهر (الفبایی)' },
   ]
+
+  const hasActiveFilter =
+    filters.city !== 'all' ||
+    filters.status !== 'all' ||
+    filters.q.trim() !== '' ||
+    filters.date !== 'all'
 
   const reset = () =>
     setFilters({ city: 'all', status: 'all', q: '', date: 'all' })
@@ -96,11 +103,33 @@ export default function FilterBar({
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <span height="18" className="chip bg-white/5 border border-white/10 text-slate-300">
-            {resultCount.toLocaleString('fa-IR')} نتیجه
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Result count placed BEFORE clear-filter and refresh buttons */}
+          <span
+            className={`chip border text-xs ${
+              hasActiveFilter
+                ? 'bg-cyan-500/15 text-cyan-200 border-cyan-400/30'
+                : 'bg-white/5 text-slate-300 border-white/10'
+            }`}
+            title={`${resultCount} از ${totalCount} رویداد نمایش داده می‌شود`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+            {resultCount.toLocaleString('fa-IR')} از {totalCount.toLocaleString('fa-IR')}
           </span>
-          <button className="btn-ghost" onClick={reset} type="button">
+
+          <button
+            className="btn-ghost disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={reset}
+            disabled={!hasActiveFilter}
+            type="button"
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="1 4 1 10 7 10" />
               <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
