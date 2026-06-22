@@ -5,7 +5,7 @@ export function parseISO(iso) {
   return new Date(iso)
 }
 
-export function formatDateTime(iso, opts = {}) {
+export function formatDateTime(iso,showDate = true, opts = {}) {
   if (!iso) return '—'
   const d = new Date(iso)
   const dateOpts = {
@@ -22,8 +22,11 @@ export function formatDateTime(iso, opts = {}) {
   }
   // Intl doesn't support separate date + time cleanly in one call in all browsers;
   // build them manually.
-  const date = new Intl.DateTimeFormat(undefined, dateOpts).format(d)
-  const time = new Intl.DateTimeFormat(undefined, timeOpts).format(d)
+  const time = new Intl.DateTimeFormat('fa-IR', timeOpts).format(d)
+  if (!showDate){
+    return time
+  }
+  const date = new Intl.DateTimeFormat('fa-IR', dateOpts).format(d)
   return `${date} · ${time}`
 }
 

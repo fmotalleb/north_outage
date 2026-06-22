@@ -15,7 +15,7 @@ const SCHEMA = {
   status: { default: 'all', values: ['all', 'active', 'upcoming', 'past'] },
   date: { default: 'all', values: ['all', 'today', 'tomorrow', 'week'] },
   sort: { default: 'start_asc', values: ['start_asc', 'start_desc', 'duration_desc', 'city'] },
-  provider: { default: 'open-meteo', values: ['open-meteo', 'met-no'] },
+  provider: { default: 'met-no', values: ['open-meteo', 'met-no'] },
   q: { default: '', maxLength: 200 },
 }
 
@@ -25,7 +25,7 @@ const DEFAULTS = {
   q: '',
   date: 'all',
   sort: 'start_asc',
-  provider: 'open-meteo',
+  provider: 'met-no',
 }
 
 const STORAGE_KEY = 'outage-tracker.filters.v1'
@@ -65,12 +65,12 @@ export default function App() {
   // Update lastUpdated whenever a successful fetch lands
   useEffect(() => {
     if (loading || error) return
-    
+
     const fetchUpdatedAt = async () => {
       try {
         const res = await fetch('/api/updated_at')
         if (!res.ok) return
-      
+
         const data = await res.json()
         if (data?.created_at) {
           setLastUpdated(new Date(data.created_at))
@@ -79,7 +79,7 @@ export default function App() {
         // silent fail or optional logging
       }
     }
-  
+
     fetchUpdatedAt()
   }, [loading, error])
 
