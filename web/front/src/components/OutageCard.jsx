@@ -35,7 +35,7 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
 
   return (
     <>
-      <article className="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4">
+      <article className="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4 flex flex-col h-full">
         {/* HEADER ROW: CITY + STATUS */}
         <div className="mt-2 flex flex-col gap-2">
           {/* LINE 1: CITY */}
@@ -87,7 +87,7 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
         </div>
 
         {/* 50/50 PANELS ALWAYS */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-auto pt-4 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-400/15 px-3 py-2.5">
             <div className="text-[11px] text-emerald-300/80 mb-0.5">شروع قطعی</div>
             <div className="text-sm font-medium text-emerald-100">
