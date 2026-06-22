@@ -124,6 +124,9 @@ var replacements = map[rune]rune{
 	'٧': '7',
 	'٨': '8',
 	'٩': '9',
+
+	// Misc
+	'-': ' ',
 }
 var sanitizer = regexp.MustCompile(`\s\s+`)
 
