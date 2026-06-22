@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"net/url"
+	"path/filepath"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -22,13 +23,13 @@ func posgreSQLBuilder(c *url.URL) (gorm.Dialector, error) {
 	query := c.Query()
 	sslMode := cmp.Or(query.Get("sslmode"), "disable")
 	tz := cmp.Or(query.Get("timeZone"), time.Local.String())
-
+	db := filepath.Base(c.Path)
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
 		c.Host,
 		c.User.Username(),
 		pass,
-		c.Path,
+		db,
 		c.Port(),
 		sslMode,
 		tz,
