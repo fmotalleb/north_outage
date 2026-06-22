@@ -5,7 +5,7 @@ import (
 	"io/fs"
 )
 
-//go:generate pnpm i
+//go:generate pnpm ci
 //go:generate pnpm approve-builds --all
 //go:generate pnpm run build
 //go:generate touch dist/.gitkeep
