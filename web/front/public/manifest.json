@@ -4,7 +4,7 @@
   "description": "نمایش زنده قطعی‌های برنامه‌ریزی‌شده برق مازندران با اطلاعات آب و هوا",
   "start_url": "/",
   "scope": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "any",
   "background_color": "#070b14",
   "theme_color": "#0c1220",
