@@ -24,7 +24,7 @@ func posgreSQLBuilder(c *url.URL) (gorm.Dialector, error) {
 	tz := cmp.Or(query.Get("timeZone"), time.Local.String())
 
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
 		c.Host,
 		c.User.Username(),
 		pass,
@@ -33,5 +33,5 @@ func posgreSQLBuilder(c *url.URL) (gorm.Dialector, error) {
 		sslMode,
 		tz,
 	)
-	return postgres.Open(dsn)
+	return postgres.Open(dsn), nil
 }
