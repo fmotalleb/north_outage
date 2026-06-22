@@ -47,12 +47,12 @@ export const CITY_COORDS = {
     "longitude": 52.9000,
     "name_en": "Simorgh"
   },
-  "فریدون‌کنار": {
+  "فریدونکنار": {
     "latitude": 36.6867,
     "longitude": 52.5225,
     "name_en": "Fereydunkenar"
   },
-  "قایم‌شهر": {
+  "قایمشهر": {
     "latitude": 36.4631,
     "longitude": 52.8595,
     "name_en": "Qaemshahr"
