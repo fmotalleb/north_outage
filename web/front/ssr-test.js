@@ -26,6 +26,7 @@ const FilterBar = mod.FilterBar
 const OutageCard = mod.OutageCard
 const WeatherProviderSelector = mod.WeatherProviderSelector
 const Dropdown = mod.Dropdown
+const InstallButton = mod.InstallButton
 
 const React = (await import('react')).default
 const { renderToString } = await import('react-dom/server')
@@ -52,7 +53,6 @@ assert('Header shows active count', headerHtml.includes('4'))
 assert('Header shows upcoming count', headerHtml.includes('3'))
 assert('Header includes stat gradients', headerHtml.includes('bg-gradient-to-l'))
 
-// FilterBar with new Dropdown
 const filterHtml = renderToString(
   React.createElement(FilterBar, {
     cities: ['قایمشهر', 'آمل', 'بابل', 'سوادکوه'],
@@ -77,7 +77,6 @@ assert('FilterBar has refresh button', filterHtml.includes('بروزرسانی')
 assert('FilterBar has reset button', filterHtml.includes('پاک کردن فیلترها'))
 assert('FilterBar shows result count', filterHtml.includes('۷') && filterHtml.includes('از') && filterHtml.includes('۱۲'))
 
-// Dropdown component
 const dropdownHtml = renderToString(
   React.createElement(Dropdown, {
     value: 'آمل',
@@ -105,7 +104,6 @@ assert('Dropdown placeholder styling for empty value', renderToString(
   })
 ).includes('text-slate-500'))
 
-// OutageCard
 const cardHtml = renderToString(
   React.createElement(OutageCard, {
     outage: outages[0],
@@ -121,7 +119,6 @@ assert('Card shows start time block', cardHtml.includes('شروع قطعی'))
 assert('Card shows end time block', cardHtml.includes('پایان قطعی'))
 assert('Card has weather button', cardHtml.includes('هواشناسی'))
 
-// WeatherProviderSelector
 const selHtml = renderToString(
   React.createElement(WeatherProviderSelector, {
     value: 'open-meteo',
@@ -133,7 +130,11 @@ assert('Selector lists Met.no', selHtml.includes('Met.no'))
 assert('Selector does not list 7Timer!', !selHtml.includes('7Timer!'))
 assert('Selector mentions no API key', selHtml.includes('کلید'))
 
-// App
+// InstallButton returns null when there's no beforeinstallprompt, so just
+// verify the component compiles without crashing.
+const installHtml = renderToString(React.createElement(InstallButton))
+assert('InstallButton renders without errors', installHtml != null)
+
 const appHtml = renderToString(React.createElement(App))
 assert('App renders without errors', appHtml.length > 1000)
 assert('App includes dropdown triggers', appHtml.includes('aria-haspopup'))

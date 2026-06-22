@@ -3,15 +3,14 @@ import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import OutageList from './components/OutageList'
 import WeatherProviderSelector from './components/WeatherProviderSelector'
+import InstallButton from './components/InstallButton'
 import { useOutages } from './hooks/useOutages'
-import { useUrlState } from './hooks/useUrlState'
+import { useLocalState } from './hooks/useLocalStorage'
 import { getKnownCities } from './data/cityCoordinates'
 import { outageStatus, durationMinutes } from './utils/dateUtils'
 
-// URL schema: city has no whitelist (we accept any of the known Persian
-// names from /api/events); status/date/sort/provider have whitelists;
-// q is a free-text search capped at 200 chars.
-const URL_SCHEMA = {
+// Schema for localStorage validation
+const SCHEMA = {
   city: { default: 'all' },
   status: { default: 'all', values: ['all', 'active', 'upcoming', 'past'] },
   date: { default: 'all', values: ['all', 'today', 'tomorrow', 'week'] },
@@ -29,32 +28,33 @@ const DEFAULTS = {
   provider: 'open-meteo',
 }
 
+const STORAGE_KEY = 'outage-tracker.filters.v1'
+
 export default function App() {
   const { outages, error, loading, refresh } = useOutages()
-  const [urlState, updateUrl] = useUrlState(URL_SCHEMA)
+  const [state, updateState] = useLocalState(STORAGE_KEY, SCHEMA)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [now, setNow] = useState(() => new Date())
 
-  // Derive UI state from urlState (single source of truth = URL)
+  // Derive UI state from local state
   const filters = useMemo(() => ({
-    city: urlState.city ?? DEFAULTS.city,
-    status: urlState.status ?? DEFAULTS.status,
-    q: urlState.q ?? DEFAULTS.q,
-    date: urlState.date ?? DEFAULTS.date,
-  }), [urlState])
+    city: state.city ?? DEFAULTS.city,
+    status: state.status ?? DEFAULTS.status,
+    q: state.q ?? DEFAULTS.q,
+    date: state.date ?? DEFAULTS.date,
+  }), [state])
 
-  const sort = urlState.sort ?? DEFAULTS.sort
-  const providerId = urlState.provider ?? DEFAULTS.provider
-  const expandedId = urlState.open ?? null
+  const sort = state.sort ?? DEFAULTS.sort
+  const providerId = state.provider ?? DEFAULTS.provider
+  const expandedId = state.open ?? null
 
-  // Setters → write back to URL via useUrlState
   const setFilters = (patch) => {
     if (typeof patch === 'function') patch = patch(filters)
-    updateUrl(patch)
+    updateState(patch)
   }
-  const setSort = (v) => updateUrl({ sort: v })
-  const setProviderId = (v) => updateUrl({ provider: v })
-  const setExpandedId = (v) => updateUrl({ open: v })
+  const setSort = (v) => updateState({ sort: v })
+  const setProviderId = (v) => updateState({ provider: v })
+  const setExpandedId = (v) => updateState({ open: v })
 
   // Tick "now" so active/upcoming/past recompute every 30s
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function App() {
   }, [loading, error])
 
   // Show all known Mazandaran cities in the dropdown by default, plus any
-  // extra ones that appear in the live data (in case of new cities).
+  // extra ones that appear in the live data.
   const cities = useMemo(() => {
     const known = new Set(getKnownCities())
     outages.forEach((o) => o.city && known.add(o.city))
@@ -167,6 +167,7 @@ export default function App() {
           </div>
 
           <aside className="space-y-4">
+            <InstallButton />
             <WeatherProviderSelector value={providerId} onChange={setProviderId} />
             <section className="card p-4 md:p-5">
               <h3 className="text-sm font-semibold text-slate-100 mb-2 flex items-center gap-2">
@@ -178,10 +179,10 @@ export default function App() {
                 راهنما
               </h3>
               <ul className="text-xs text-slate-400 space-y-1.5 leading-relaxed">
-                <li>· روی «هواشناسی» هر رویداد بزنید تا دما، رطوبت و پوشش ابر در بازه قطعی نمایش داده شود.</li>
+                <li>· روی «هواشناسی» هر رویداد بزنید تا دما، رطوبت و پوشش ابر نمایش داده شود.</li>
                 <li>· ارائه‌دهنده آب و هوا از ستون سمت راست قابل تغییر است.</li>
-                <li>· فیلترها در نشانی صفحه ذخیره می‌شوند و قابل اشتراک‌گذاری هستند.</li>
-                <li>· لیست شهرها شامل همه شهرهای مازندران است، حتی اگر در حال حاضر قطعی نداشته باشند.</li>
+                <li>· فیلترها در حافظه مرورگر ذخیره می‌شوند و در بازدید بعدی بازمی‌گردند.</li>
+                <li>· لیست شهرها شامل همه شهرهای مازندران است.</li>
               </ul>
             </section>
           </aside>
