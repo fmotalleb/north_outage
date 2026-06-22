@@ -28,7 +28,11 @@ export default function Header({ total, active, upcoming, past, lastUpdated }) {
             پایش زنده رویدادهای قطعی برق استان مازندران
             {lastUpdated && (
               <span className="mr-2 text-slate-500">
-                · آخرین بروزرسانی: {formatDateTime(lastUpdated.toISOString())}
+                · آخرین بروزرسانی:{' '}
+                {new Intl.DateTimeFormat('fa-IR', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(lastUpdated)}
               </span>
             )}
           </p>

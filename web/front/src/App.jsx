@@ -64,7 +64,23 @@ export default function App() {
 
   // Update lastUpdated whenever a successful fetch lands
   useEffect(() => {
-    if (!loading && !error) setLastUpdated(new Date())
+    if (loading || error) return
+    
+    const fetchUpdatedAt = async () => {
+      try {
+        const res = await fetch('/api/updated_at')
+        if (!res.ok) return
+      
+        const data = await res.json()
+        if (data?.created_at) {
+          setLastUpdated(new Date(data.created_at))
+        }
+      } catch (e) {
+        // silent fail or optional logging
+      }
+    }
+  
+    fetchUpdatedAt()
   }, [loading, error])
 
   // Show all known Mazandaran cities in the dropdown by default, plus any

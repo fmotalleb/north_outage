@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/cast"
@@ -14,6 +15,7 @@ func init() {
 	RegisterEndpoint(
 		func(api *echo.Echo) {
 			api.GET("/api/events", events)
+			api.GET("/api/updated_at", updatedAt)
 		},
 	)
 }
@@ -49,4 +51,26 @@ func events(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, events)
 	}
 	return c.JSON(http.StatusOK, events)
+}
+
+func updatedAt(c echo.Context) error {
+	db := database.
+		Get().
+		WithContext(c.Request().Context()).
+		Table("events")
+
+	var createdAt time.Time
+
+	err := db.
+		Order("created_at DESC").
+		Pluck("created_at", &createdAt).Error
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"created_at": createdAt,
+	})
 }

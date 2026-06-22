@@ -81,5 +81,5 @@ export function relativeFromNow(iso, now = new Date()) {
   if (mins < 60) str = `${mins} دقیقه`
   else if (hours < 24) str = `${hours} ساعت${remMins ? ' و ' + remMins + ' دقیقه' : ''}`
   else str = `${Math.floor(hours / 24)} روز`
-  return diff >= 0 ? `تا ${str}` : `${str} پیش`
+  return diff >= 0 ? `${str} دیگر` : `${str} پیش`
 }
