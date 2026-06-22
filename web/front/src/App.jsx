@@ -12,7 +12,7 @@ import { outageStatus, durationMinutes } from './utils/dateUtils'
 // Schema for localStorage validation
 const SCHEMA = {
   city: { default: 'all' },
-  status: { default: 'all', values: ['all', 'active', 'upcoming', 'past'] },
+  status: { default: 'all', values: ['all', 'active', 'upcoming', 'past', 'active-upcoming'] },
   date: { default: 'all', values: ['all', 'today', 'tomorrow', 'week'] },
   sort: { default: 'start_asc', values: ['start_asc', 'start_desc', 'duration_desc', 'city'] },
   provider: { default: 'met-no', values: ['open-meteo', 'met-no'] },
@@ -116,7 +116,11 @@ export default function App() {
     return outages.filter((o) => {
       if (filters.city !== 'all' && o.city !== filters.city) return false
       const status = outageStatus(o.start, o.end, now)
-      if (filters.status !== 'all' && status !== filters.status) return false
+      if (filters.status == "active-upcoming"){
+        if (status != "upcoming" && status!="active"){
+          return false
+        }
+      }else if (filters.status !== 'all' && (status !== filters.status)) return false
       if (q && !((o.address || '').toLowerCase().includes(q) || (o.city || '').toLowerCase().includes(q))) {
         return false
       }

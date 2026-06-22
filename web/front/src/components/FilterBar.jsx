@@ -22,6 +22,7 @@ export default function FilterBar({
     { value: 'active', label: 'در جریان' },
     { value: 'upcoming', label: 'پیش‌رو' },
     { value: 'past', label: 'پایان‌یافته' },
+    { value: 'active-upcoming', label: 'در جریان و پیش‌رو' },
   ]
   const dateOptions = [
     { value: 'all', label: 'همه تاریخ‌ها' },
