@@ -87,7 +87,7 @@ set-var = '{{ eval "ContentPlaceHolder1_ddlCity.selectedOptions[0].text" }}'
 
 [[collector.pipeline.steps.steps]]
 nop = """
-{{ eval `[...document.querySelectorAll('#ContentPlaceHolder1_ddlArea > option')]
+{{ eval `[...document.querySelectorAll('#ContentPlaceHolder1_ddlCity > option')]
   .map((a) =>  a.innerText)
   .filter((a) => !a.startsWith("--") )
   .join(",")`
