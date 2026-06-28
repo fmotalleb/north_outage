@@ -20,7 +20,7 @@ const SCHEMA = {
 }
 
 const DEFAULTS = {
-  city: 'all',
+  city: 'ساری',
   status: 'all',
   q: '',
   date: 'all',
@@ -31,7 +31,6 @@ const DEFAULTS = {
 const STORAGE_KEY = 'outage-tracker.filters.v1'
 
 export default function App() {
-  const { outages, error, loading, refresh } = useOutages()
   const [state, updateState] = useLocalState(STORAGE_KEY, SCHEMA)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [now, setNow] = useState(() => new Date())
@@ -43,6 +42,8 @@ export default function App() {
     q: state.q ?? DEFAULTS.q,
     date: state.date ?? DEFAULTS.date,
   }), [state])
+
+  const { outages, error, loading, refresh } = useOutages(filters.city)
 
   const sort = state.sort ?? DEFAULTS.sort
   const providerId = state.provider ?? DEFAULTS.provider
@@ -114,7 +115,7 @@ export default function App() {
     weekAhead.setDate(weekAhead.getDate() + 7)
 
     return outages.filter((o) => {
-      if (filters.city !== 'all' && o.city !== filters.city) return false
+      if (o.city !== filters.city) return false
       const status = outageStatus(o.start, o.end, now)
       if (filters.status == "active-upcoming"){
         if (status != "upcoming" && status!="active"){

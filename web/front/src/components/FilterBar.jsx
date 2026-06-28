@@ -13,10 +13,11 @@ export default function FilterBar({
 }) {
   const update = (k) => (v) => setFilters((f) => ({ ...f, [k]: v }))
 
-  const cityOptions = [
-    { value: 'all', label: 'همه شهرها' },
-    ...cities.map((c) => ({ value: c, label: c })),
-  ]
+  const cityOptions = cities.map((c) => ({ value: c, label: c }))
+  //  [
+  //   { value: 'all', label: 'همه شهرها' },
+  //   ...cities.map((c) => ({ value: c, label: c })),
+  // ]
   const statusOptions = [
     { value: 'all', label: 'همه وضعیت‌ها' },
     { value: 'active', label: 'در جریان' },

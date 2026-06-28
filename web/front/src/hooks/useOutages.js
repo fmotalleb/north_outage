@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 
 const ENDPOINT = '/api/events'
 
-export function useOutages() {
+export function useOutages(city = "ساری") {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -11,12 +11,10 @@ export function useOutages() {
     setLoading(true)
     setError(null)
     try {
-      const r = await fetch(ENDPOINT, { signal })
+      const r = await fetch(ENDPOINT + `?city=${city}`, { signal })
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       const j = await r.json()
-      // API may return either an array directly or { data: [...] }
       const list = Array.isArray(j) ? j : Array.isArray(j?.data) ? j.data : []
-      // Normalize + sort by start ascending
       list.sort((a, b) => new Date(a.start) - new Date(b.start))
       setData(list)
     } catch (e) {
@@ -27,13 +25,13 @@ export function useOutages() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [city])
 
   useEffect(() => {
     const ctrl = new AbortController()
     load(ctrl.signal)
     return () => ctrl.abort()
-  }, [load])
+  }, [load]) // load changes when city changes, so this re-runs automatically
 
   return { outages: data ?? [], error, loading, refresh: () => load() }
 }
