@@ -13,8 +13,8 @@ type Event struct {
 	City    string `gorm:"size:255;not null" json:"city"`
 	Address string `gorm:"type:text;not null" json:"address"`
 
-	Start     time.Time `json:"start"`
-	End       time.Time `json:"end"`
+	Start     time.Time `json:"start_at"`
+	End       time.Time `json:"end_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

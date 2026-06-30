@@ -123,8 +123,11 @@ func collectAndStore(ctx context.Context, cfg *config.Config) ([]models.Event, e
 
 // runEventsGC removes expired events from the database based on maxAge.
 func runEventsGC(maxAge time.Duration, db *gorm.DB) error {
-	cutoff := time.Now().Add(-maxAge)
-	return db.Transaction(func(tx *gorm.DB) error {
-		return tx.Where("end <= ?", cutoff).Unscoped().Delete(&models.Event{}).Error
-	})
+	cutoff := time.Now().UTC().Add(-maxAge)
+
+	return db.
+		Where(`"end_at" <= ?`, cutoff).
+		Unscoped().
+		Delete(&models.Event{}).
+		Error
 }

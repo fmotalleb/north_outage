@@ -111,7 +111,7 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 func selectMatchingListeners(db *gorm.DB, e models.Event) []models.Listener {
 	listeners := make([]models.Listener, 0)
 	db.Where(
-		"city = ? AND INSTR(?, search_term) > 0",
+		"city = ? AND ? ILIKE '%' || search_term || '%'",
 		e.City,
 		e.Address,
 	).Find(&listeners)
