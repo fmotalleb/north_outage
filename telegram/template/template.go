@@ -21,8 +21,18 @@ func EvaluateTemplate(tmplt string, data map[string]any, update *models.Update) 
 	if data == nil {
 		data = make(map[string]any)
 	}
-	data["msg"] = update.Message
-	data["name"] = getName(&update.Message.Chat)
+	var msg *models.Message
+	if update != nil {
+		msg = update.Message
+		if msg == nil && update.CallbackQuery != nil {
+			msg = update.CallbackQuery.Message.Message
+		}
+	}
+	if msg == nil {
+		return "", nil
+	}
+	data["msg"] = msg
+	data["name"] = getName(&msg.Chat)
 	out, err := template.EvaluateTemplateWithFuncs(tmplt, data, funcs)
 	return out, err
 }

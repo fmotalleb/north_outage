@@ -12,15 +12,16 @@ import (
 	"github.com/fmotalleb/north_outage/telegram/helpers"
 )
 
-func init() {
-	register(
-		func(_ context.Context, b *bot.Bot) {
-			b.RegisterHandler(bot.HandlerTypeMessageText, "/version", bot.MatchTypePrefix, version)
-		},
-	)
+func registerVersionHandlers(b *bot.Bot) {
+	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
+		return isCommand(update, "version")
+	}, version)
 }
 
 func version(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.Message == nil {
+		return
+	}
 	chat := update.Message.Chat
 	l := log.Of(ctx).
 		Named("version").

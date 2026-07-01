@@ -12,16 +12,19 @@ import (
 	"github.com/fmotalleb/north_outage/telegram/template"
 )
 
-func init() {
-	register(
-		func(_ context.Context, b *bot.Bot) {
-			b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypePrefix, help)
-			b.RegisterHandler(bot.HandlerTypeMessageText, "/help", bot.MatchTypePrefix, help)
-		},
-	)
+func registerHelpHandlers(b *bot.Bot) {
+	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
+		return isCommand(update, "start")
+	}, help)
+	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
+		return isCommand(update, "help")
+	}, help)
 }
 
 func help(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.Message == nil {
+		return
+	}
 	chat := update.Message.Chat
 	l := log.Of(ctx).
 		Named("help").

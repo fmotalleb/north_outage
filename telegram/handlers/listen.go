@@ -27,16 +27,24 @@ var mem = memory.NewRuntime[listenReq]()
 
 const memoryTTL = time.Minute
 
-func init() {
-	register(
-		func(_ context.Context, b *bot.Bot) {
-			b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "listen:", bot.MatchTypePrefix, listen)
-		},
-	)
+func registerListenHandlers(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "listen:", bot.MatchTypePrefix, listen)
 }
 
 func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.CallbackQuery == nil {
+		return
+	}
 	l := log.Of(ctx).Named("listen")
+	if update.CallbackQuery.Message.Message == nil {
+		l.Error("callback query message is missing")
+		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            "این دکمه دیگر معتبر نیست",
+			ShowAlert:       true,
+		})
+		return
+	}
 	key := strings.TrimPrefix(update.CallbackQuery.Data, "listen:")
 	cp := new(bot.AnswerCallbackQueryParams)
 	cp.ShowAlert = true

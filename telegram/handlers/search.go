@@ -17,22 +17,34 @@ import (
 
 const (
 	maxSearchResult = 10
-	searchCMD       = "/search"
+	searchCommand   = "search"
 )
 
-func init() {
-	register(
-		func(_ context.Context, b *bot.Bot) {
-			b.RegisterHandler(bot.HandlerTypeMessageText, searchCMD, bot.MatchTypePrefix, search)
-			b.RegisterHandlerMatchFunc(shouldSearch, search)
-		},
-	)
+func registerSearchHandlers(b *bot.Bot) {
+	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
+		return isCommand(update, searchCommand)
+	}, search)
 }
 
 func search(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.Message == nil {
+		return
+	}
 	l := log.Of(ctx).Named("search")
 	input := update.Message
-	search := strings.TrimPrefix(input.Text, searchCMD)
+	search := commandArgument(input.Text, searchCommand)
+	if search == "" {
+		mp := helpers.MakeMessage(update)
+		mp.Text = "عبارت جستجو را بعد از /search بنویس."
+		msg, err := b.SendMessage(ctx, mp)
+		if err != nil {
+			l.Error("failed to send empty search prompt", zap.Error(err))
+			return
+		}
+		l.Debug("sent prompt", zap.Int("id", msg.ID))
+		return
+	}
+
 	events, err := fetchEvents(search)
 
 	mp := helpers.MakeMessage(update)
@@ -53,7 +65,6 @@ func search(ctx context.Context, b *bot.Bot, update *models.Update) {
 		}
 	}
 
-	// Build buttons for each unique city
 	if len(events) > 0 {
 		mp.ReplyMarkup = &models.InlineKeyboardMarkup{
 			InlineKeyboard: buildBtns(search, events),
@@ -68,22 +79,8 @@ func search(ctx context.Context, b *bot.Bot, update *models.Update) {
 	l.Debug("sent message", zap.Int("id", msg.ID))
 }
 
-func shouldSearch(update *models.Update) bool {
-	if update.Message == nil {
-		return false
-	}
-	query := update.Message.Text
-	var exists bool
-	err := database.Get().
-		Table("events").
-		Select("1").
-		Where("address LIKE ?", "%"+query+"%").
-		Limit(1).
-		Scan(&exists).Error
-	return err == nil && exists
-}
-
 func fetchEvents(search string) ([]im.Event, error) {
+	search = strings.TrimSpace(search)
 	out := make([]im.Event, 0, maxSearchResult)
 	err := database.Get().
 		Table("events").
