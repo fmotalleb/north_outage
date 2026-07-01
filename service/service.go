@@ -12,6 +12,7 @@ import (
 
 	"github.com/fmotalleb/north_outage/config"
 	"github.com/fmotalleb/north_outage/database"
+	"github.com/fmotalleb/north_outage/mattermost"
 	"github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram"
 	"github.com/fmotalleb/north_outage/web"
@@ -37,6 +38,7 @@ func Serve(ctx context.Context) error {
 		return err
 	}
 	l.Info("config initialized", zap.Any("cfg", cfg))
+	mattermost.Setup(ctx, cfg)
 	ec := make(chan models.Event, eventsChannelBufferSize)
 	wg, ctx := errgroup.WithContext(ctx)
 	wg.Go(
@@ -76,6 +78,19 @@ func Serve(ctx context.Context) error {
 				if err != nil {
 					l.Error("telegram service collapsed", zap.Error(err))
 					return fmt.Errorf("telegram service unrecoverable exception: %w", err)
+				}
+				return nil
+			},
+		)
+	}
+	if cfg.Mattermost.BotToken != "" && cfg.Mattermost.ServerURL != "" {
+		wg.Go(
+			func() error {
+				_, ch := bc.Subscribe(notificationBufferSize)
+				err := mattermost.Run(ctx, cfg, ch)
+				if err != nil {
+					l.Error("mattermost service collapsed", zap.Error(err))
+					return fmt.Errorf("mattermost service unrecoverable exception: %w", err)
 				}
 				return nil
 			},

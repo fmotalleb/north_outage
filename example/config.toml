@@ -3,6 +3,10 @@ include = [
 ]
 # http_listen = ":9090"
 # telegram_bot = ""
+# mattermost_bot_token = ""
+# mattermost_server_url = "https://mattermost.example.com"
+# mattermost_public_url = "https://bot.example.com"
+# mattermost_command_token = ""
 # database = "sqlite://outage.db"
 collect_cycle = "@hourly"
 # max_age = "1h"

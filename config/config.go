@@ -13,7 +13,8 @@ import (
 type Config struct {
 	HTTPListenAddr string `mapstructure:"http_listen" env:"HTTP_LISTEN"`
 
-	Telegram Telegram `mapstructure:"telegram"`
+	Telegram   Telegram   `mapstructure:"telegram"`
+	Mattermost Mattermost `mapstructure:"mattermost"`
 
 	DatabaseConnection string `mapstructure:"database" env:"DATABASE" default:"sqlite:///outage.db" validate:"required,uri"`
 
@@ -32,4 +33,12 @@ type Telegram struct {
 	Timeout  time.Duration `mapstructure:"timeout" env:"TELEGRAM_BOT_TIMEOUT" default:"30s" validate:"required"`
 	Proxy    *url.URL      `mapstructure:"proxy" env:"TELEGRAM_BOT_PROXY"`
 	Endpoint url.URL       `mapstructure:"api" env:"TELEGRAM_BOT_ENDPOINT" default:"https://api.telegram.org" validate:"required"`
+}
+
+type Mattermost struct {
+	BotToken     string        `mapstructure:"bot_token" env:"MATTERMOST_BOT_TOKEN"`
+	ServerURL    string        `mapstructure:"server_url" env:"MATTERMOST_SERVER_URL" validate:"omitempty,url"`
+	PublicURL    string        `mapstructure:"public_url" env:"MATTERMOST_PUBLIC_URL" validate:"omitempty,url"`
+	CommandToken string        `mapstructure:"command_token" env:"MATTERMOST_COMMAND_TOKEN"`
+	Timeout      time.Duration `mapstructure:"timeout" env:"MATTERMOST_TIMEOUT" default:"30s" validate:"required"`
 }

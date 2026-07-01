@@ -7,6 +7,10 @@ type Listener struct {
 	TelegramCID int64 `gorm:"not null" json:"-"`
 	// ThreadID
 	TelegramTID int64 `gorm:"null" json:"-"`
+	// Mattermost channel id
+	MattermostCID string `gorm:"type:text" json:"-"`
+	// Mattermost root post id for threaded replies
+	MattermostRID string `gorm:"type:text" json:"-"`
 
 	// Search Text (sql `like`)
 	SearchTerm string `gorm:"type:text;not null;uniqueIndex:idx_listener_term_city" json:"search_term"`
