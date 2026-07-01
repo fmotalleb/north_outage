@@ -2,7 +2,7 @@
 
 North Outage is a tool for monitoring and viewing electricity outage information for the north of Iran. It scrapes data from the electricity distribution company and presents it in a user-friendly web interface.
 
-![Screenshot](./docs/screenshot.png)
+![Screenshot](./docs/screenshot.webp)
 
 ## Features
 
