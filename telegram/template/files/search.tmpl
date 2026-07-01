@@ -1,4 +1,4 @@
-🤖 موارد یافت شده: {{ .results | len | itoa | fanum }}
+🤖 موارد یافت شده: {{ .results | len | int | fanum }}
 {{- range $i, $e := .results }}
 
 🗓 <b>{{ $e.Start | relDate }}</b> {{ $e.Start | jFormat "%w %Y/%m/%d %B" | fanum }}
