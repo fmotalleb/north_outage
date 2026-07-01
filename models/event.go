@@ -8,13 +8,15 @@ import (
 )
 
 type Event struct {
-	ID      uint   `gorm:"primaryKey" json:"id"`
-	Hash    string `gorm:"index:idx_event_hash,unique" json:"unique_hash"`
-	City    string `gorm:"size:255;not null" json:"city"`
-	Address string `gorm:"type:text;not null" json:"address"`
+	ID   uint   `gorm:"primaryKey" json:"id"`
+	Hash string `gorm:"index:idx_event_hash,unique" json:"unique_hash"`
+	City string `gorm:"size:255;not null" json:"city"`
 
-	Start     time.Time `json:"start_at"`
-	End       time.Time `json:"end_at"`
+	Address string `gorm:"type:text;not null;index:idx_event_address" json:"address"`
+
+	Start time.Time `gorm:"column:start_at" json:"start_at"`
+	End   time.Time `gorm:"column:end_at" json:"end_at"`
+
 	CreatedAt time.Time `json:"created_at"`
 }
 
