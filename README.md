@@ -59,9 +59,7 @@ The app also autoloads `.env` through `github.com/joho/godotenv/autoload`.
 
 ### Config Files
 
-- `config/config.go` defines the config schema.
-- `config/reader.go` reads and merges the config sources.
-- `config/ctx_helper.go` attaches the resolved config to the request context.
+- read `config/config.go` for config schema.
 
 ### Quick Start
 
@@ -209,7 +207,7 @@ Use it as a starting point if you want to:
 -   **Backend:** Go
 -   **Frontend:** React, TypeScript, Vite, Tailwind CSS
 -   **Scraping:** Playwright
--   **Database:** SQLite (by default)
+-   **Database:** SQLite (by default), Postgres
 
 ## Contributing
 
