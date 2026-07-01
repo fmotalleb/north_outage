@@ -69,6 +69,9 @@ func search(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func shouldSearch(update *models.Update) bool {
+	if update.Message == nil {
+		return false
+	}
 	query := update.Message.Text
 	var exists bool
 	err := database.Get().
