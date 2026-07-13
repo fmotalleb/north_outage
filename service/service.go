@@ -18,6 +18,7 @@ import (
 	"github.com/fmotalleb/north_outage/mattermost"
 	"github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram"
+	"github.com/fmotalleb/north_outage/weather"
 	"github.com/fmotalleb/north_outage/web"
 )
 
@@ -41,6 +42,7 @@ func Serve(ctx context.Context) error {
 		return err
 	}
 	l.Info("config initialized", zap.Any("cfg", cfg))
+	weather.Init(cfg.Weather.Proxy)
 	mattermost.Setup(ctx, cfg)
 	ec := make(chan models.Event, eventsChannelBufferSize)
 	wg, ctx := errgroup.WithContext(ctx)

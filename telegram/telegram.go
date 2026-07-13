@@ -11,6 +11,7 @@ import (
 	"github.com/fmotalleb/north_outage/config"
 	im "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/handlers"
+	"github.com/fmotalleb/north_outage/weather"
 
 	"github.com/go-telegram/bot"
 )
@@ -50,7 +51,9 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 			sp := new(bot.SendMessageParams)
 			sp.ChatID = n.Listener.TelegramCID
 			sp.MessageThreadID = int(n.Listener.TelegramTID)
-			sp.Text = formatNotification(n.Event)
+			cfg, err := config.Get(ctx)
+			notifyWeather := err == nil && cfg.Weather.Notify
+			sp.Text = formatNotification(ctx, n.Event, notifyWeather)
 			m, err := b.SendMessage(ctx, sp)
 			if err != nil {
 				l.Error("failed to send message to telegram", zap.Error(err))
@@ -63,11 +66,17 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 	}
 }
 
-func formatNotification(ev *im.Event) string {
-	return fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
+func formatNotification(ctx context.Context, ev *im.Event, notifyWeather bool) string {
+	msg := fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
 		ev.City,
 		ev.Address,
 		ev.StartClock(), ev.Start.Format("15:04"),
 		ev.EndClock(), ev.End.Format("15:04"),
 	)
+	if notifyWeather {
+		if w := weather.FormatWeatherLine(weather.GetWeather(ctx, ev.City, ev.Start, ev.End)); w != "" {
+			msg += "\n🌤" + w
+		}
+	}
+	return msg
 }

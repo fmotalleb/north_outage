@@ -28,6 +28,8 @@ type Config struct {
 	RotateAfter time.Duration `mapstructure:"max_age" env:"MAX_AGE" default:"1h"`
 
 	NotifyBefore time.Duration `mapstructure:"notify_before" env:"NOTIFY_BEFORE" default:"15m"`
+
+	Weather Weather `mapstructure:"weather"`
 }
 
 type Telegram struct {
@@ -43,4 +45,9 @@ type Mattermost struct {
 	PublicURL    string        `mapstructure:"public_url" env:"MATTERMOST_PUBLIC_URL" validate:"omitempty,url"`
 	CommandToken string        `mapstructure:"command_token" env:"MATTERMOST_COMMAND_TOKEN"`
 	Timeout      time.Duration `mapstructure:"timeout" env:"MATTERMOST_TIMEOUT" default:"30s" validate:"required"`
+}
+
+type Weather struct {
+	Proxy  *url.URL `mapstructure:"proxy" env:"WEATHER_PROXY"`
+	Notify bool     `mapstructure:"notify" env:"WEATHER_NOTIFY" default:"false"`
 }

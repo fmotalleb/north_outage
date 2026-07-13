@@ -17,6 +17,7 @@ import (
 	"github.com/fmotalleb/north_outage/database"
 	nmodels "github.com/fmotalleb/north_outage/models"
 	ttemplate "github.com/fmotalleb/north_outage/telegram/template"
+	"github.com/fmotalleb/north_outage/weather"
 	"github.com/labstack/echo/v4"
 )
 
@@ -360,13 +361,19 @@ func toString(v any) string {
 	}
 }
 
-func formatMMNotification(ev *nmodels.Event) string {
-	return fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
+func formatMMNotification(ctx context.Context, ev *nmodels.Event, notifyWeather bool) string {
+	msg := fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
 		ev.City,
 		ev.Address,
 		ev.StartClock(), ev.Start.Format("15:04"),
 		ev.EndClock(), ev.End.Format("15:04"),
 	)
+	if notifyWeather {
+		if w := weather.FormatWeatherLine(weather.GetWeather(ctx, ev.City, ev.Start, ev.End)); w != "" {
+			msg += "\n🌤" + w
+		}
+	}
+	return msg
 }
 
 func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg *config.Config, nc <-chan nmodels.Notification) {
@@ -385,9 +392,10 @@ func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg 
 			if n.Listener.MattermostCID == "" {
 				continue
 			}
+			notifyWeather := cfg.Weather.Notify
 			body := map[string]any{
 				"channel_id": n.Listener.MattermostCID,
-				"message":    formatMMNotification(n.Event),
+				"message":    formatMMNotification(ctx, n.Event, notifyWeather),
 			}
 			if n.Listener.MattermostRID != "" {
 				body["root_id"] = n.Listener.MattermostRID
