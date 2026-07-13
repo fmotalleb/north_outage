@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: library/postgres:18-alpine
+    # profiles:
+    #   - postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: outages
+      POSTGRES_PASSWORD: outages
+      POSTGRES_DB: outages
+    volumes:
+      - /tmp/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U outages -d outages"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+

@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
@@ -49,7 +50,7 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 			sp := new(bot.SendMessageParams)
 			sp.ChatID = n.Listener.TelegramCID
 			sp.MessageThreadID = int(n.Listener.TelegramTID)
-			sp.Text = n.Event.Address
+			sp.Text = formatNotification(n.Event)
 			m, err := b.SendMessage(ctx, sp)
 			if err != nil {
 				l.Error("failed to send message to telegram", zap.Error(err))
@@ -60,4 +61,13 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 			return
 		}
 	}
+}
+
+func formatNotification(ev *im.Event) string {
+	return fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
+		ev.City,
+		ev.Address,
+		ev.StartClock(), ev.Start.Format("15:04"),
+		ev.EndClock(), ev.End.Format("15:04"),
+	)
 }

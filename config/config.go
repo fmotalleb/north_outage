@@ -26,6 +26,8 @@ type Config struct {
 	CollectOnStartThreshold time.Duration `mapstructure:"collect_on_start_threshold" env:"COLLECT_ON_START_THRESHOLD" default:"10m"`
 
 	RotateAfter time.Duration `mapstructure:"max_age" env:"MAX_AGE" default:"1h"`
+
+	NotifyBefore time.Duration `mapstructure:"notify_before" env:"NOTIFY_BEFORE" default:"15m"`
 }
 
 type Telegram struct {

@@ -360,6 +360,15 @@ func toString(v any) string {
 	}
 }
 
+func formatMMNotification(ev *nmodels.Event) string {
+	return fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
+		ev.City,
+		ev.Address,
+		ev.StartClock(), ev.Start.Format("15:04"),
+		ev.EndClock(), ev.End.Format("15:04"),
+	)
+}
+
 func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg *config.Config, nc <-chan nmodels.Notification) {
 	base := apiBase()
 	if base == nil {
@@ -378,7 +387,7 @@ func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg 
 			}
 			body := map[string]any{
 				"channel_id": n.Listener.MattermostCID,
-				"message":    n.Event.Address,
+				"message":    formatMMNotification(n.Event),
 			}
 			if n.Listener.MattermostRID != "" {
 				body["root_id"] = n.Listener.MattermostRID
