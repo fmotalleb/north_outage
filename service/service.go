@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/fmotalleb/go-tools/broadcast"
 	"github.com/fmotalleb/go-tools/log"
@@ -102,16 +103,21 @@ func Serve(ctx context.Context) error {
 
 func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event) <-chan models.Notification {
 	notifications := make(chan models.Notification, eventsChannelBufferSize)
+	listeners := getListeners(db)
 	db = db.Table("listeners")
 	go func() {
 		for {
 			select {
 			case ev := <-events:
-				listeners := selectMatchingListeners(db, ev)
 				for _, l := range listeners {
-					notifications <- models.Notification{
-						Listener: &l,
-						Event:    &ev,
+					if ev.City != l.City {
+						continue
+					}
+					if strings.Contains(ev.Address, l.SearchTerm) {
+						notifications <- models.Notification{
+							Listener: &l,
+							Event:    &ev,
+						}
 					}
 				}
 			case <-ctx.Done():
@@ -123,12 +129,8 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 	return notifications
 }
 
-func selectMatchingListeners(db *gorm.DB, e models.Event) []models.Listener {
+func getListeners(db *gorm.DB) []models.Listener {
 	listeners := make([]models.Listener, 0)
-	db.Where(
-		"city = ? AND ? ILIKE '%' || search_term || '%'",
-		e.City,
-		e.Address,
-	).Find(&listeners)
+	db.Find(&listeners)
 	return listeners
 }
