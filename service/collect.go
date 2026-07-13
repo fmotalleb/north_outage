@@ -99,7 +99,7 @@ func collectAndStore(ctx context.Context, cfg *config.Config) ([]models.Event, e
 	for _, h := range storedHashes {
 		existingHashes[h] = struct{}{}
 	}
-
+	newEvents := make([]models.Event, 0)
 	err = db.Transaction(func(tx *gorm.DB) error {
 		for _, ev := range events {
 			if _, exists := existingHashes[ev.Hash]; exists {
@@ -108,6 +108,7 @@ func collectAndStore(ctx context.Context, cfg *config.Config) ([]models.Event, e
 			if err = tx.Create(&ev).Error; err != nil {
 				return err
 			}
+			newEvents = append(newEvents, ev)
 		}
 		return nil
 	})
@@ -118,7 +119,7 @@ func collectAndStore(ctx context.Context, cfg *config.Config) ([]models.Event, e
 	if gcErr := runEventsGC(cfg.RotateAfter, db); gcErr != nil {
 		logger.Warn("event garbage collection failed", zap.Error(gcErr))
 	}
-	return events, nil
+	return newEvents, nil
 }
 
 // runEventsGC removes expired events from the database based on maxAge.
