@@ -40,7 +40,7 @@ COPY north_outage /usr/bin/north_outage
 
 USER north_outage
 
-RUN /usr/bin/north_outage setup --just-shell
+RUN /usr/bin/north_outage setup
 
 WORKDIR /home/north_outage
 
