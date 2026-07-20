@@ -1,8 +1,9 @@
-FROM library/debian:bookworm-slim AS slim
+FROM library/debian:trixie-slim AS slim
 RUN --mount=type=cache,target=/var/lib/apt/lists/ \
   --mount=type=cache,target=/var/cache/apt/archives/ <<EOF
 set -e
 apt-get update
+apt-get full-upgrade
 apt-get install -y ca-certificates  ca-certificates \
     fonts-liberation \
     libasound2 \
@@ -30,6 +31,8 @@ apt-get install -y ca-certificates  ca-certificates \
     libxkbcommon0 \
     libxrandr2 \
     wget
+apt-get autoclean -y
+apt-get autopurge -y
 rm -rf /var/lib/apt/lists/*
 useradd -m north_outage
 EOF
@@ -37,7 +40,7 @@ COPY north_outage /usr/bin/north_outage
 
 USER north_outage
 
-RUN /usr/bin/north_outage setup
+RUN /usr/bin/north_outage setup --just-shell
 
 WORKDIR /home/north_outage
 
