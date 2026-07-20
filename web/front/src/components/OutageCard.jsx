@@ -26,11 +26,11 @@ const STATUS_META = {
 }
 
 export default function OutageCard({ outage, weatherProviderId, expanded, onToggle }) {
-  const status = outageStatus(outage.start, outage.end)
+  const status = outageStatus(outage.start_at, outage.end_at)
   const meta = STATUS_META[status]
 
-  const dur = durationMinutes(outage.start, outage.end)
-  const refStart = relativeFromNow(outage.start)
+  const dur = durationMinutes(outage.start_at, outage.end_at)
+  const refStart = relativeFromNow(outage.start_at)
   // const refEnd = relativeFromNow(outage.end)
 
   return (
@@ -91,14 +91,14 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
           <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-400/15 px-3 py-2.5">
             <div className="text-[11px] text-emerald-300/80 mb-0.5">شروع قطعی</div>
             <div className="text-sm font-medium text-emerald-100">
-              {formatDateTime(outage.start)}
+              {formatDateTime(outage.start_at)}
             </div>
           </div>
 
           <div className="rounded-xl bg-rose-500/[0.06] border border-rose-400/15 px-3 py-2.5">
             <div className="text-[11px] text-rose-300/80 mb-0.5">پایان قطعی</div>
             <div className="text-sm font-medium text-rose-100">
-              {formatDateTime(outage.end)}
+              {formatDateTime(outage.end_at)}
             </div>
             {/* <div className="text-[11px] text-slate-400 mt-0.5">{refEnd}</div> */}
           </div>

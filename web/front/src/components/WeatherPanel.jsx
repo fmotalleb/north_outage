@@ -40,8 +40,8 @@ export default function WeatherPanel({ providerId, outage }) {
     city: outage.city,
     lat: fallbackCoords?.latitude,
     lon: fallbackCoords?.longitude,
-    startISO: outage.start,
-    endISO: outage.end,
+    startISO: outage.start_at,
+    endISO: outage.end_at,
     enabled: true,
   })
 

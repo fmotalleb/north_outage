@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { validateList, EVENT_SCHEMA } from '../utils/validateApi'
 
 const ENDPOINT = '/api/events'
 
@@ -15,7 +16,8 @@ export function useOutages(city = "ساری") {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       const j = await r.json()
       const list = Array.isArray(j) ? j : Array.isArray(j?.data) ? j.data : []
-      list.sort((a, b) => new Date(a.start) - new Date(b.start))
+      validateList(list, EVENT_SCHEMA, '/api/events response')
+      list.sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
       setData(list)
     } catch (e) {
       if (e.name !== 'AbortError') {

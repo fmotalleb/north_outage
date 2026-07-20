@@ -8,6 +8,7 @@ import { useOutages } from './hooks/useOutages'
 import { useLocalState } from './hooks/useLocalStorage'
 import { getKnownCities } from './data/cityCoordinates'
 import { outageStatus, durationMinutes } from './utils/dateUtils'
+import { validateShape, UPDATED_AT_SCHEMA } from './utils/validateApi'
 
 // Schema for localStorage validation
 const SCHEMA = {
@@ -73,6 +74,7 @@ export default function App() {
         if (!res.ok) return
 
         const data = await res.json()
+        validateShape(data, UPDATED_AT_SCHEMA, '/api/updated_at response')
         if (data?.created_at) {
           setLastUpdated(new Date(data.created_at))
         }
@@ -95,7 +97,7 @@ export default function App() {
   const counts = useMemo(() => {
     let active = 0, upcoming = 0, past = 0
     outages.forEach((o) => {
-      const s = outageStatus(o.start, o.end, now)
+      const s = outageStatus(o.start_at, o.end_at, now)
       if (s === 'active') active++
       else if (s === 'upcoming') upcoming++
       else past++
@@ -116,7 +118,7 @@ export default function App() {
 
     return outages.filter((o) => {
       if (o.city !== filters.city) return false
-      const status = outageStatus(o.start, o.end, now)
+      const status = outageStatus(o.start_at, o.end_at, now)
       if (filters.status == "active-upcoming"){
         if (status != "upcoming" && status!="active"){
           return false
@@ -125,7 +127,7 @@ export default function App() {
       if (q && !((o.address || '').toLowerCase().includes(q) || (o.city || '').toLowerCase().includes(q))) {
         return false
       }
-      const start = new Date(o.start)
+      const start = new Date(o.start_at)
       if (filters.date === 'today' && !(start >= today && start < tomorrow)) return false
       if (filters.date === 'tomorrow' && !(start >= tomorrow && start < dayAfter)) return false
       if (filters.date === 'week' && !(start >= today && start < weekAhead)) return false
@@ -138,11 +140,11 @@ export default function App() {
     arr.sort((a, b) => {
       switch (sort) {
         case 'start_asc':
-          return new Date(a.start) - new Date(b.start)
+          return new Date(a.start_at) - new Date(b.start_at)
         case 'start_desc':
-          return new Date(b.start) - new Date(a.start)
+          return new Date(b.start_at) - new Date(a.start_at)
         case 'duration_desc':
-          return durationMinutes(b.start, b.end) - durationMinutes(a.start, a.end)
+          return durationMinutes(b.start_at, b.end_at) - durationMinutes(a.start_at, a.end_at)
         case 'city':
           return (a.city || '').localeCompare(b.city || '', 'fa')
         default:
