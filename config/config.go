@@ -6,8 +6,6 @@ import (
 
 	// Autoload .env file.
 	_ "github.com/joho/godotenv/autoload"
-
-	sc "github.com/fmotalleb/scrapper-go/config"
 )
 
 type Config struct {
@@ -18,9 +16,9 @@ type Config struct {
 
 	DatabaseConnection string `mapstructure:"database" env:"DATABASE" default:"sqlite:///outage.db" validate:"required,uri"`
 
-	CollectCycle    string             `mapstructure:"collect_cycle" env:"COLLECT_CRON" default:"0 0 * * * *" validate:"required,cron"`
-	CollectTimeout  time.Duration      `mapstructure:"collect_timeout" env:"COLLECT_TIMEOUT" default:"1h"`
-	CollectorConfig sc.ExecutionConfig `mapstructure:"collector"`
+	CollectCycle    string        `mapstructure:"collect_cycle" env:"COLLECT_CRON" default:"0 0 * * * *" validate:"required,cron"`
+	CollectTimeout  time.Duration `mapstructure:"collect_timeout" env:"COLLECT_TIMEOUT" default:"1h"`
+	CollectorConfig `mapstructure:"collector"`
 
 	CollectOnStart          *bool         `mapstructure:"collect_on_start" env:"COLLECT_ON_START" default:"true"`
 	CollectOnStartThreshold time.Duration `mapstructure:"collect_on_start_threshold" env:"COLLECT_ON_START_THRESHOLD" default:"10m"`
@@ -30,6 +28,12 @@ type Config struct {
 	NotifyBefore time.Duration `mapstructure:"notify_before" env:"NOTIFY_BEFORE" default:"15m"`
 
 	Weather Weather `mapstructure:"weather"`
+}
+
+type Collector struct {
+	Endpoint string        `mapstructure:"endpoint" env:"FETCH_API_ENDPOINT" default:"https://khamooshi.maztozi.ir/api/outages"`
+	Timeout  time.Duration `mapstructure:"timeout" env:"FETCH_API_TIMEOUT" default:"30s" validate:"required"`
+	Proxy    *url.URL      `mapstructure:"proxy" env:"FETCH_API_PROXY"`
 }
 
 type Telegram struct {
