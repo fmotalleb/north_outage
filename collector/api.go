@@ -135,6 +135,10 @@ func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.
 			duration = collectorCfg.UnPlannedDuration
 		}
 		start := date.ToGregorian()
+		if start.Before(time.Now()) {
+			logger.Debug("event is happened already; skipping", zap.Any("event", v))
+			continue
+		}
 		ev := &models.Event{
 			City:    city,
 			Address: persianFixer(v.Address),
