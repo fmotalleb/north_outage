@@ -60,8 +60,6 @@ func toJalali(t any) jalali.JalaliTime {
 }
 
 func jFormat(format string, t time.Time) string {
-	println(t)
-	println(format)
 	return jalali.JalaliFromTime(t).Format(format)
 }
 
