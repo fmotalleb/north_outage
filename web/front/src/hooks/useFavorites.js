@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { outageStatus } from '../utils/dateUtils'
 
 /** Build a stable location key from city + address */
 export function getLocationId(outage) {
@@ -91,7 +92,7 @@ export function useFavorites() {
         ),
       )
 
-      const matched = []
+      let matched = []
       for (const result of results) {
         if (result.status !== 'fulfilled') continue
         const j = result.value
@@ -103,6 +104,14 @@ export function useFavorites() {
           }
         }
       }
+
+      // Filter out items that have already ended
+      const now = new Date()
+      matched = matched.filter((item) => outageStatus(item.start_at, item.end_at, now) !== 'past')
+
+      // Remove locations from localStorage favorites when all their events have ended
+      const activeLocations = new Set(matched.map((item) => getLocationId(item)))
+      setFavorites((prev) => prev.filter((f) => activeLocations.has(f.id)))
 
       // Sort by start time ascending
       matched.sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
@@ -135,8 +144,9 @@ export function useFavorites() {
           },
         ]
       })
-      // Immediately add the outage to the live list so it appears right away
+      // Immediately add the outage to the live list if it hasn't ended yet
       setFavoriteOutages((prev) => {
+        if (outageStatus(outage.start_at, outage.end_at) === 'past') return prev
         if (prev.some((o) => o.unique_hash === outage.unique_hash)) return prev
         return [...prev, outage].sort(
           (a, b) => new Date(a.start_at) - new Date(b.start_at),
