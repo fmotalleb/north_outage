@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fmotalleb/go-jalali"
 	"github.com/fmotalleb/go-tools/template"
-	"github.com/mshafiee/jalali"
 	"github.com/spf13/cast"
 )
 
@@ -26,13 +26,13 @@ func EvaluateTemplate(tmplt string, data map[string]any) (string, error) {
 	return out, err
 }
 
-func toJalali(t any) jalali.JalaliTime {
+func toJalali(t any) jalali.Time {
 	realValue := cast.ToTime(t)
-	return jalali.JalaliFromTime(realValue)
+	return jalali.FromGregorian(realValue)
 }
 
 func jFormat(format string, t time.Time) string {
-	return jalali.JalaliFromTime(t).Format(format)
+	return jalali.FromGregorian(t).Format(format)
 }
 
 var faNumMap = map[rune]rune{

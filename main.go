@@ -16,8 +16,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package main
 
-import "github.com/fmotalleb/north_outage/cmd"
+import (
+	"time"
+
+	"github.com/fmotalleb/go-jalali"
+)
 
 func main() {
-	cmd.Execute()
+	println(jalali.ToPersianDigits(jalali.FromGregorian(time.Now()).Format("Monday 2006/01/02 January")))
+
+	// cmd.Execute()
 }

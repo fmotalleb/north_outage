@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/fmotalleb/go-jalali"
 	"github.com/fmotalleb/go-tools/log"
-	"github.com/mshafiee/jalali"
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/config"
@@ -60,7 +60,7 @@ var defaultCityMap = map[int]string{
 	87: "ساری",
 }
 
-const defaultBodyTemplate = `{"fromDate":"{{ now | jFormat "%Y/%m/%d" | fanum }}","toDate":"{{ now | dateModify "24h" | jFormat "%Y/%m/%d" | fanum }}","city":-1,"pgds":""}`
+const defaultBodyTemplate = `{"fromDate":"{{ now | jFormat "2006/01/02" | fanum }}","toDate":"{{ now | dateModify "24h" | jFormat "2006/01/02" | fanum }}","city":-1,"pgds":""}`
 
 func fetchData(ctx context.Context) ([]models.Event, error) {
 	logger := log.Of(ctx)
@@ -119,7 +119,7 @@ func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.
 			logger.Error("city id is not found in city mapper", zap.Any("event", v))
 			continue
 		}
-		date, err := jalali.Parse("%Y/%m/%d %H:%M:%S", v.OutageDate+" "+v.OutageTime+":00")
+		date, err := jalali.Parse("2006/01/02 15:04", v.OutageDate+" "+v.OutageTime+":00")
 		if err != nil {
 			logger.Error("failed to parse jalali start date", zap.Error(err), zap.Any("event", v))
 			continue

@@ -1,8 +1,8 @@
 🤖 موارد یافت شده: {{ .results | len | int | fanum }}
 {{- range $e := slice .results 0 (min 4 (len .results)) }}
 
-🗓 <b>{{ $e.Start | relDate }}</b> {{ $e.Start | jFormat "%w %Y/%m/%d %B" | fanum }}
-⏰ <b>{{ $e.StartClock }}{{ $e.Start | jFormat "%R" | fanum }}</b> تا <b>{{ $e.EndClock }}{{ $e.End | jFormat "%R" | fanum }}</b>
+🗓 <b>{{ $e.Start | relDate }}</b> {{ $e.Start | jFormat "Monday 2006/01/02 January" | fanum }}
+⏰ <b>{{ $e.StartClock }}{{ $e.Start | fanum }}</b> تا <b>{{ $e.EndClock }}{{ $e.End | fanum }}</b>
 🏠 <b>{{ $e.City }}</b> - {{ $e.Address }}
 {{- end }}
 

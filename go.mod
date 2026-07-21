@@ -9,20 +9,17 @@ tool (
 )
 
 require (
+	github.com/fmotalleb/go-jalali v1.0.0
 	github.com/fmotalleb/go-tools v0.1.79
-	github.com/fmotalleb/scrapper-go v0.4.7
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-telegram/bot v1.22.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.15.4
-	github.com/mshafiee/jalali v1.1.0
-	github.com/mxschmitt/playwright-go v0.6100.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.10.2
 	go.uber.org/zap v1.28.0
-	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
 	gorm.io/driver/postgres v1.6.0
@@ -73,10 +70,8 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
-	github.com/PuerkitoBio/goquery v1.12.0 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/anchore/go-macholibre v0.0.0-20250826193721-3cd206ca93aa // indirect
-	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.14.0 // indirect
 	github.com/avast/retry-go/v4 v4.7.0 // indirect
@@ -140,7 +135,6 @@ require (
 	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davidmz/go-pageant v1.0.2 // indirect
-	github.com/deckarep/golang-set/v2 v2.8.0 // indirect
 	github.com/dghubble/go-twitter v0.0.0-20211115160449-93a8679adecb // indirect
 	github.com/dghubble/oauth1 v0.7.3 // indirect
 	github.com/dghubble/sling v1.4.0 // indirect
@@ -165,7 +159,6 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.9.0 // indirect
 	github.com/go-git/go-git/v5 v5.19.1 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -194,7 +187,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-restruct/restruct v1.2.0-alpha // indirect
-	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -267,7 +259,6 @@ require (
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/moby/api v1.55.0 // indirect
