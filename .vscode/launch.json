@@ -12,6 +12,7 @@
             "mode": "auto",
             "program": "${workspaceFolder}",
             "envFile": "${workspaceFolder}/.env",
+            
             "args": [
                 "--config=example/config.toml",
                 "-v"

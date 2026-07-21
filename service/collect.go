@@ -118,6 +118,7 @@ func collectAndStore(ctx context.Context, cfg *config.Config) ([]models.Event, e
 				return err
 			}
 			newEvents = append(newEvents, ev)
+			existingHashes[ev.Hash] = struct{}{}
 		}
 		return nil
 	})

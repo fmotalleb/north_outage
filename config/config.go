@@ -18,7 +18,7 @@ type Config struct {
 
 	CollectCycle    string        `mapstructure:"collect_cycle" env:"COLLECT_CRON" default:"0 0 * * * *" validate:"required,cron"`
 	CollectTimeout  time.Duration `mapstructure:"collect_timeout" env:"COLLECT_TIMEOUT" default:"1h"`
-	CollectorConfig `mapstructure:"collector"`
+	CollectorConfig Collector     `mapstructure:"collector"`
 
 	CollectOnStart          *bool         `mapstructure:"collect_on_start" env:"COLLECT_ON_START" default:"true"`
 	CollectOnStartThreshold time.Duration `mapstructure:"collect_on_start_threshold" env:"COLLECT_ON_START_THRESHOLD" default:"10m"`
@@ -31,9 +31,13 @@ type Config struct {
 }
 
 type Collector struct {
-	Endpoint string        `mapstructure:"endpoint" env:"FETCH_API_ENDPOINT" default:"https://khamooshi.maztozi.ir/api/outages"`
-	Timeout  time.Duration `mapstructure:"timeout" env:"FETCH_API_TIMEOUT" default:"30s" validate:"required"`
-	Proxy    *url.URL      `mapstructure:"proxy" env:"FETCH_API_PROXY"`
+	Endpoint  string        `mapstructure:"endpoint" env:"COLLECTOR_ENDPOINT" default:"https://khamooshi.maztozi.ir/api/outages"`
+	Timeout   time.Duration `mapstructure:"timeout" env:"COLLECTOR_TIMEOUT" default:"30s" validate:"required"`
+	Proxy     *url.URL      `mapstructure:"proxy" env:"COLLECTOR_PROXY"`
+	SSLVerify bool          `mapstructure:"ssl_verify" env:"COLLECTOR_SSL_VERIFY" default:"false"` // default explicitly set to false due to current state of the api ssl
+
+	PlannedDuration   time.Duration `mapstructure:"planned_duration" env:"COLLECTOR_PLANNED_DURATION" default:"2h"`
+	UnPlannedDuration time.Duration `mapstructure:"unplanned_duration" env:"COLLECTOR_UNPLANNED_DURATION" default:"5h"`
 }
 
 type Telegram struct {
