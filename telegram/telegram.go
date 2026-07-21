@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fmotalleb/go-jalali"
 	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
 
@@ -67,9 +68,14 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 }
 
 func formatNotification(ctx context.Context, ev *im.Event, notifyWeather bool) string {
-	msg := fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
+	// Format date in Jalali (Persian) calendar
+	startJalali := jalali.FromGregorian(ev.Start)
+	dateStr := startJalali.FormatPersian("2006/01/02")
+
+	msg := fmt.Sprintf("🏙 %s\n📍 %s\n🗓 %s\n⏰ %s %s — %s %s",
 		ev.City,
 		ev.Address,
+		dateStr,
 		ev.StartClock(), ev.Start.Format("15:04"),
 		ev.EndClock(), ev.End.Format("15:04"),
 	)
