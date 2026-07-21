@@ -9,7 +9,7 @@ tool (
 )
 
 require (
-	github.com/fmotalleb/go-jalali v1.0.0
+	github.com/fmotalleb/go-jalali v1.1.0
 	github.com/fmotalleb/go-tools v0.1.79
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-telegram/bot v1.22.0

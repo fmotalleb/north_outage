@@ -60,7 +60,7 @@ func toJalali(t any) jalali.Time {
 }
 
 func jFormat(format string, t time.Time) string {
-	return jalali.FromGregorian(t).Format(format)
+	return jalali.FromGregorian(t).FormatPersian(format)
 }
 
 var faNumMap = map[rune]rune{
