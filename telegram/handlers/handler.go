@@ -9,6 +9,7 @@ import (
 func SetupHandlers(ctx context.Context, b *bot.Bot) {
 	registerHelpHandlers(b)
 	registerSearchHandlers(b)
+	registerTextHandlers(b)
 	registerVersionHandlers(b)
 	registerListenHandlers(b)
 }

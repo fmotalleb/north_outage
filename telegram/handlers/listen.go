@@ -29,6 +29,7 @@ const memoryTTL = time.Minute
 
 func registerListenHandlers(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "listen:", bot.MatchTypePrefix, listen)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "cancel", bot.MatchTypeExact, cancelListen)
 }
 
 func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -85,6 +86,28 @@ func responseError(ctx context.Context, l *zap.Logger, mp *bot.SendMessageParams
 		return
 	}
 	l.Debug("sent error message", zap.Int("id", msg.ID))
+}
+
+func cancelListen(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.CallbackQuery == nil {
+		return
+	}
+	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+		CallbackQueryID: update.CallbackQuery.ID,
+		Text:            "لغو شد ✓",
+		ShowAlert:       true,
+	})
+
+	// Remove the inline keyboard from the original message.
+	msg := update.CallbackQuery.Message.Message
+	if msg != nil {
+		editParams := &bot.EditMessageReplyMarkupParams{
+			ChatID:      msg.Chat.ID,
+			MessageID:   msg.ID,
+			ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: make([][]models.InlineKeyboardButton, 0)},
+		}
+		_, _ = b.EditMessageReplyMarkup(ctx, editParams)
+	}
 }
 
 func createRequest(search, city string) string {

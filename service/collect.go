@@ -33,6 +33,7 @@ func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Even
 	timeUntilNext := time.Until(nextRun)
 
 	scheduler := cron.New(cron.WithParser(parser))
+
 	jobID, err := scheduler.AddFunc(cfg.CollectCycle, makeCollectFunc(ctx, cfg, ec, notifyTrigger))
 	if err != nil {
 		logger.Error("failed to register collector job", zap.Error(err))
