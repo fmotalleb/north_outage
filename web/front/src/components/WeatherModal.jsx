@@ -97,8 +97,8 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
     city: outage?.city,
     lat: fallbackCoords?.latitude,
     lon: fallbackCoords?.longitude,
-    startISO: outage?.start,
-    endISO: outage?.end,
+    startISO: outage?.start_at,
+    endISO: outage?.end_at,
     // Only fetch while the modal is open so we don't burn API quota
     enabled: !!open && !!outage,
   })
