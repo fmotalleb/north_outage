@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -175,7 +176,7 @@ func readActionPayload(r *http.Request) ([]byte, error) {
 		if len(body) > 0 {
 			return body, nil
 		}
-		return nil, fmt.Errorf("empty payload")
+		return nil, errors.New("empty payload")
 	}
 	return []byte(payload), nil
 }

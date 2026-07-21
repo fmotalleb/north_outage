@@ -58,7 +58,7 @@ func startNotifyBeforeScheduler(
 			s.scanAndSchedule(ctx, leadTime)
 			s.fireDue(ctx)
 		case <-ctx.Done():
-			logger.Debug("context cancelled, stopping notify-before scheduler")
+			logger.Debug("context canceled, stopping notify-before scheduler")
 			return nil
 		}
 	}

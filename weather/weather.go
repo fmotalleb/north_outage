@@ -53,9 +53,9 @@ func Init(proxyURL *url.URL) {
 // ── In-memory cache (by city) ──────────────────────────────────────────────
 
 var (
-	cacheMu    sync.Mutex
-	cache      = make(map[string]*cacheEntry)
-	cacheTTL   = 30 * time.Minute
+	cacheMu  sync.Mutex
+	cache    = make(map[string]*cacheEntry)
+	cacheTTL = 30 * time.Minute
 )
 
 type cacheEntry struct {
@@ -86,7 +86,7 @@ func GetWeather(ctx context.Context, city string, start, end time.Time) *Weather
 	return data
 }
 
-// FormatWeatherLine returns a one-line string summarising the weather data,
+// FormatWeatherLine returns a one-line string summarizing the weather data,
 // suitable for appending to a notification message. Returns "" when no data.
 func FormatWeatherLine(w *WeatherData) string {
 	if w == nil || !w.Available {
@@ -107,25 +107,25 @@ func FormatWeatherLine(w *WeatherData) string {
 
 // ── City coordinates (Mazandaran province, Iran) ───────────────────────────
 
-// cityCoords mirrors web/front/src/data/cityCoordinates.js
+// cityCoords mirrors web/front/src/data/cityCoordinates.js.
 var cityCoords = map[string]struct {
 	Lat float64
 	Lon float64
 }{
-	"آمل":         {36.4696, 52.3507},
-	"بابل":        {36.5513, 52.6789},
-	"بابلسر":      {36.6921, 52.6872},
-	"بهشهر":       {36.6924, 53.5526},
-	"جویبار":      {36.6411, 52.9125},
-	"ساری":        {36.5633, 53.0600},
+	"آمل":           {36.4696, 52.3507},
+	"بابل":          {36.5513, 52.6789},
+	"بابلسر":        {36.6921, 52.6872},
+	"بهشهر":         {36.6924, 53.5526},
+	"جویبار":        {36.6411, 52.9125},
+	"ساری":          {36.5633, 53.0600},
 	"سوادکوه شمالی": {36.2919, 52.8806},
-	"سوادکوه":     {36.1167, 53.0500},
-	"سیمرغ":       {36.5806, 52.9000},
-	"فریدونکنار":  {36.6867, 52.5225},
-	"قایمشهر":     {36.4631, 52.8595},
-	"گلوگاه":      {36.7278, 53.8083},
-	"میاندرود":    {36.5640, 53.1930},
-	"نکا":         {36.6519, 53.2990},
+	"سوادکوه":       {36.1167, 53.0500},
+	"سیمرغ":         {36.5806, 52.9000},
+	"فریدونکنار":    {36.6867, 52.5225},
+	"قایمشهر":       {36.4631, 52.8595},
+	"گلوگاه":        {36.7278, 53.8083},
+	"میاندرود":      {36.5640, 53.1930},
+	"نکا":           {36.6519, 53.2990},
 }
 
 func getCoords(city string) (lat, lon float64, ok bool) {
@@ -190,10 +190,10 @@ func fetchOpenMeteo(ctx context.Context, city string, start, end time.Time) *Wea
 
 	var result struct {
 		Hourly struct {
-			Times                []string  `json:"time"`
-			Temperature2m        []float64 `json:"temperature_2m"`
-			RelativeHumidity2m   []float64 `json:"relative_humidity_2m"`
-			CloudCover           []float64 `json:"cloud_cover"`
+			Times              []string  `json:"time"`
+			Temperature2m      []float64 `json:"temperature_2m"`
+			RelativeHumidity2m []float64 `json:"relative_humidity_2m"`
+			CloudCover         []float64 `json:"cloud_cover"`
 		} `json:"hourly"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {

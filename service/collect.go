@@ -18,7 +18,7 @@ import (
 )
 
 // StartCollector schedules and runs the periodic event collection job.
-// The notifyTrigger channel is signalled after every successful collection so
+// The notifyTrigger channel is signaled after every successful collection so
 // the notify-before scheduler can scan for newly arrived events.
 func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Event, notifyTrigger chan<- struct{}) error {
 	logger := log.FromContext(ctx).Named("CollectorScheduler")
