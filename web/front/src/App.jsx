@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import OutageList from './components/OutageList'
+import FavoriteOutages from './components/FavoriteOutages'
 import WeatherProviderSelector from './components/WeatherProviderSelector'
 import InstallButton from './components/InstallButton'
 import { useOutages } from './hooks/useOutages'
 import { useLocalState } from './hooks/useLocalStorage'
+import { useFavorites } from './hooks/useFavorites'
 import { getKnownCities } from './data/cityCoordinates'
 import { outageStatus, durationMinutes } from './utils/dateUtils'
 import { validateShape, UPDATED_AT_SCHEMA } from './utils/validateApi'
@@ -35,6 +37,14 @@ export default function App() {
   const [state, updateState] = useLocalState(STORAGE_KEY, SCHEMA)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [now, setNow] = useState(() => new Date())
+  const {
+    favoriteOutages,
+    favoritesLoading,
+    addFavorite,
+    removeFavorite,
+    isFavorite,
+    refreshFavorites,
+  } = useFavorites()
 
   // Derive UI state from local state
   const filters = useMemo(() => ({
@@ -45,6 +55,18 @@ export default function App() {
   }), [state])
 
   const { outages, error, loading, refresh } = useOutages(filters.city)
+
+  // Toggle a card as favorite (add or remove)
+  const onToggleFavorite = useCallback(
+    (outage) => {
+      if (isFavorite(outage.unique_hash)) {
+        removeFavorite(outage.unique_hash)
+      } else {
+        addFavorite(outage, filters.q)
+      }
+    },
+    [isFavorite, addFavorite, removeFavorite, filters.q],
+  )
 
   const sort = state.sort ?? DEFAULTS.sort
   const providerId = state.provider ?? DEFAULTS.provider
@@ -167,6 +189,17 @@ export default function App() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
           <div className="space-y-4 min-w-0">
+            {/* Pinned Favorites section — shown above filters */}
+            <FavoriteOutages
+              favoriteOutages={favoriteOutages}
+              favoritesLoading={favoritesLoading}
+              expandedId={expandedId}
+              setExpandedId={setExpandedId}
+              weatherProviderId={providerId}
+              isFavorite={isFavorite}
+              onRemoveFavorite={removeFavorite}
+              onRefresh={refreshFavorites}
+            />
             <FilterBar
               cities={cities}
               filters={filters}
@@ -186,6 +219,8 @@ export default function App() {
               setExpandedId={setExpandedId}
               weatherProviderId={providerId}
               onRetry={refresh}
+              isFavorite={isFavorite}
+              onToggleFavorite={onToggleFavorite}
             />
           </div>
 

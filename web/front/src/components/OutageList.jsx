@@ -25,6 +25,8 @@ export default function OutageList({
   setExpandedId,
   weatherProviderId,
   onRetry,
+  isFavorite,
+  onToggleFavorite,
 }) {
   if (loading) {
     return (
@@ -81,6 +83,9 @@ export default function OutageList({
           onToggle={() =>
             setExpandedId(expandedId === o.unique_hash ? null : o.unique_hash)
           }
+          showFavorite={true}
+          isFavorited={isFavorite ? isFavorite(o.unique_hash) : false}
+          onToggleFavorite={() => onToggleFavorite && onToggleFavorite(o)}
         />
       ))}
     </div>

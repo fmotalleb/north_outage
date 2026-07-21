@@ -52,7 +52,7 @@ export const CITY_COORDS = {
     "longitude": 52.5225,
     "name_en": "Fereydunkenar"
   },
-  "قایمشهر": {
+  "قائمشهر": {
     "latitude": 36.4631,
     "longitude": 52.8595,
     "name_en": "Qaemshahr"

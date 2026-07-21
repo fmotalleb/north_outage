@@ -119,7 +119,7 @@ func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.
 			logger.Error("city id is not found in city mapper", zap.Any("event", v))
 			continue
 		}
-		date, err := jalali.Parse("2006/01/02 15:04", v.OutageDate+" "+v.OutageTime+":00")
+		date, err := jalali.Parse("2006/01/02 15:04", v.OutageDate+" "+v.OutageTime)
 		if err != nil {
 			logger.Error("failed to parse jalali start date", zap.Error(err), zap.Any("event", v))
 			continue
@@ -131,7 +131,7 @@ func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.
 		start := date.ToGregorian()
 		ev := &models.Event{
 			City:    city,
-			Address: v.Address,
+			Address: persianFixer(v.Address),
 			Start:   start,
 			End:     start.Add(duration),
 		}
