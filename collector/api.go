@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/fmotalleb/go-jalali"
 	"github.com/fmotalleb/go-tools/log"
@@ -119,7 +120,12 @@ func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.
 			logger.Error("city id is not found in city mapper", zap.Any("event", v))
 			continue
 		}
-		date, err := jalali.Parse("2006/01/02 15:04", v.OutageDate+" "+v.OutageTime)
+		loc, err := time.LoadLocation("Asia/Tehran")
+		if err != nil {
+			logger.Warn("failed to load Asia/Tehran timezone, falling back to UTC", zap.Error(err))
+			loc = time.UTC
+		}
+		date, err := jalali.ParseInLocation("2006/01/02 15:04", v.OutageDate+" "+v.OutageTime, loc)
 		if err != nil {
 			logger.Error("failed to parse jalali start date", zap.Error(err), zap.Any("event", v))
 			continue
