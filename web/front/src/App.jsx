@@ -7,7 +7,7 @@ import WeatherProviderSelector from './components/WeatherProviderSelector'
 import InstallButton from './components/InstallButton'
 import { useOutages } from './hooks/useOutages'
 import { useLocalState } from './hooks/useLocalStorage'
-import { useFavorites } from './hooks/useFavorites'
+import { useFavorites, getLocationId } from './hooks/useFavorites'
 import { getKnownCities } from './data/cityCoordinates'
 import { outageStatus, durationMinutes } from './utils/dateUtils'
 import { validateShape, UPDATED_AT_SCHEMA } from './utils/validateApi'
@@ -56,11 +56,12 @@ export default function App() {
 
   const { outages, error, loading, refresh } = useOutages(filters.city)
 
-  // Toggle a card as favorite (add or remove)
+  // Toggle a location as favorite (add or remove)
   const onToggleFavorite = useCallback(
     (outage) => {
-      if (isFavorite(outage.unique_hash)) {
-        removeFavorite(outage.unique_hash)
+      const locId = getLocationId(outage)
+      if (isFavorite(locId)) {
+        removeFavorite(locId)
       } else {
         addFavorite(outage, filters.q)
       }

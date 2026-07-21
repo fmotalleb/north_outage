@@ -1,4 +1,5 @@
 import OutageCard from './OutageCard'
+import { getLocationId } from '../hooks/useFavorites'
 
 function FavoriteSkeletonCard() {
   return (
@@ -97,8 +98,8 @@ export default function FavoriteOutages({
               setExpandedId(expandedId === o.unique_hash ? null : o.unique_hash)
             }
             showFavorite={true}
-            isFavorited={isFavorite(o.unique_hash)}
-            onToggleFavorite={() => onRemoveFavorite(o.unique_hash)}
+            isFavorited={isFavorite(getLocationId(o))}
+            onToggleFavorite={() => onRemoveFavorite(getLocationId(o))}
           />
         ))}
       </div>

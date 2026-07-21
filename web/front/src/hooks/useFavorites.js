@@ -1,17 +1,28 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 
-const STORAGE_KEY = 'outage-tracker.favorites.v2'
+/** Build a stable location key from city + address */
+export function getLocationId(outage) {
+  return `${outage.city}|${outage.address || ''}`
+}
+
+const STORAGE_KEY = 'outage-tracker.favorites.v3'
 
 /**
  * Each favorite stores:
- *   id:        unique_hash of the outage
+ *   id:        composite key "{city}|{address}"
  *   city:      city name
  *   q:         search term (address query) used when favorited
  *   address:   outage address
- *   start_at:  outage start time
- *   end_at:    outage end time
  *   favoritedAt: ISO timestamp when it was favorited
  */
+function parseLocationId(id) {
+  const idx = id.indexOf('|')
+  if (idx === -1) return { city: '', address: id }
+  return {
+    city: id.slice(0, idx),
+    address: id.slice(idx + 1),
+  }
+}
 function loadFavorites() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -56,7 +67,7 @@ export function useFavorites() {
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
-  // Fetch live data for all favorited cities
+  // Fetch live data for all favorited locations
   const refreshFavorites = useCallback(async () => {
     const favs = loadFavorites()
     if (favs.length === 0) {
@@ -68,7 +79,7 @@ export function useFavorites() {
 
     // Collect unique cities
     const cities = [...new Set(favs.map((f) => f.city))]
-    const favIdSet = new Set(favs.map((f) => f.id))
+    const locationSet = new Set(favs.map((f) => f.id))
 
     try {
       const results = await Promise.allSettled(
@@ -86,7 +97,8 @@ export function useFavorites() {
         const j = result.value
         const list = Array.isArray(j) ? j : Array.isArray(j?.data) ? j.data : []
         for (const item of list) {
-          if (favIdSet.has(item.unique_hash)) {
+          const locId = getLocationId(item)
+          if (locationSet.has(locId)) {
             matched.push(item)
           }
         }
@@ -109,7 +121,7 @@ export function useFavorites() {
 
   const addFavorite = useCallback(
     (outage, searchTerm) => {
-      const id = outage.unique_hash
+      const id = getLocationId(outage)
       setFavorites((prev) => {
         if (prev.some((f) => f.id === id)) return prev
         return [
@@ -119,15 +131,13 @@ export function useFavorites() {
             city: outage.city,
             q: searchTerm || '',
             address: outage.address || '',
-            start_at: outage.start_at,
-            end_at: outage.end_at,
             favoritedAt: new Date().toISOString(),
           },
         ]
       })
       // Immediately add the outage to the live list so it appears right away
       setFavoriteOutages((prev) => {
-        if (prev.some((o) => o.unique_hash === id)) return prev
+        if (prev.some((o) => o.unique_hash === outage.unique_hash)) return prev
         return [...prev, outage].sort(
           (a, b) => new Date(a.start_at) - new Date(b.start_at),
         )
@@ -141,7 +151,11 @@ export function useFavorites() {
   const removeFavorite = useCallback(
     (id) => {
       setFavorites((prev) => prev.filter((f) => f.id !== id))
-      setFavoriteOutages((prev) => prev.filter((o) => o.unique_hash !== id))
+      // Remove ALL outage events for this location
+      const { city, address } = parseLocationId(id)
+      setFavoriteOutages((prev) =>
+        prev.filter((o) => !(o.city === city && o.address === address)),
+      )
     },
     [],
   )
