@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/fmotalleb/go-tools/template"
-	"github.com/go-telegram/bot/models"
 	"github.com/mshafiee/jalali"
 	"github.com/spf13/cast"
 )
@@ -17,41 +16,14 @@ var funcs = map[string]any{
 	"relDate":  relativeDate,
 }
 
-func EvaluateTemplate(tmplt string, data map[string]any, update *models.Update) (string, error) {
+// EvaluateTemplate evaluates a template string with the provided data using the
+// built-in custom functions (toJalali, jFormat, fanum, relDate).
+func EvaluateTemplate(tmplt string, data map[string]any) (string, error) {
 	if data == nil {
 		data = make(map[string]any)
 	}
-	var msg *models.Message
-	if update != nil {
-		msg = update.Message
-		if msg == nil && update.CallbackQuery != nil {
-			msg = update.CallbackQuery.Message.Message
-		}
-	}
-	if msg == nil {
-		return "", nil
-	}
-	data["msg"] = msg
-	data["name"] = getName(&msg.Chat)
 	out, err := template.EvaluateTemplateWithFuncs(tmplt, data, funcs)
 	return out, err
-}
-
-func getName(c *models.Chat) string {
-	sb := new(strings.Builder)
-	if c.FirstName != "" {
-		sb.WriteString(c.FirstName)
-		if c.LastName != "" {
-			sb.WriteRune(' ')
-			sb.WriteString(c.LastName)
-		}
-	} else if c.LastName != "" {
-		sb.WriteString(c.LastName)
-	}
-	if sb.String() == "" {
-		return c.Title
-	}
-	return sb.String()
 }
 
 func toJalali(t any) jalali.JalaliTime {
@@ -60,8 +32,6 @@ func toJalali(t any) jalali.JalaliTime {
 }
 
 func jFormat(format string, t time.Time) string {
-	println(t)
-	println(format)
 	return jalali.JalaliFromTime(t).Format(format)
 }
 

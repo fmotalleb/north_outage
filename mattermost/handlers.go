@@ -16,7 +16,7 @@ import (
 	"github.com/fmotalleb/north_outage/config"
 	"github.com/fmotalleb/north_outage/database"
 	nmodels "github.com/fmotalleb/north_outage/models"
-	ttemplate "github.com/fmotalleb/north_outage/telegram/template"
+	"github.com/fmotalleb/north_outage/telegram/message"
 	"github.com/fmotalleb/north_outage/weather"
 	"github.com/labstack/echo/v4"
 )
@@ -189,7 +189,7 @@ func makeResponse(req *slashCommandRequest, text string) mattermostResponse {
 
 func helpText(req *slashCommandRequest) string {
 	update := syntheticUpdate(req.UserName, req.ChannelName, "")
-	out, err := ttemplate.EvaluateTemplate(ttemplate.Help, nil, update)
+	out, err := message.EvaluateMessageTemplate(message.Help, nil, update)
 	if err != nil || out == "" {
 		return "Use /search <text> to find outages."
 	}
@@ -215,7 +215,7 @@ func handleSearch(req *slashCommandRequest) mattermostResponse {
 
 	update := syntheticUpdate(req.UserName, req.ChannelName, search)
 	data := map[string]any{"results": events}
-	out, err := ttemplate.EvaluateTemplate(ttemplate.Search, data, update)
+	out, err := message.EvaluateMessageTemplate(message.Search, data, update)
 	if err != nil || out == "" {
 		out = fmt.Sprintf("Found %d matching outages.", len(events))
 	}

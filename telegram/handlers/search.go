@@ -12,7 +12,7 @@ import (
 	"github.com/fmotalleb/north_outage/database"
 	im "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/helpers"
-	"github.com/fmotalleb/north_outage/telegram/template"
+	"github.com/fmotalleb/north_outage/telegram/message"
 )
 
 const (
@@ -56,7 +56,7 @@ func search(ctx context.Context, b *bot.Bot, update *models.Update) {
 			"results": events,
 		}
 		var out string
-		out, err = template.EvaluateTemplate(template.Search, data, update)
+		out, err = message.EvaluateMessageTemplate(message.Search, data, update)
 		if err != nil {
 			l.Error("failed to evaluate template", zap.Error(err), zap.Any("chat", update.Message.Chat))
 			mp.Text = "خطایی در نمایش خروجی پیش اومده"

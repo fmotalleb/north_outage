@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/telegram/helpers"
-	"github.com/fmotalleb/north_outage/telegram/template"
+	"github.com/fmotalleb/north_outage/telegram/message"
 )
 
 func registerHelpHandlers(b *bot.Bot) {
@@ -30,7 +30,7 @@ func help(ctx context.Context, b *bot.Bot, update *models.Update) {
 		Named("help").
 		With(zap.Any("chat", chat))
 	mp := helpers.MakeMessage(update)
-	out, err := template.EvaluateTemplate(template.Help, nil, update)
+	out, err := message.EvaluateMessageTemplate(message.Help, nil, update)
 	if err != nil {
 		l.Error("failed to generate help message")
 	} else {
