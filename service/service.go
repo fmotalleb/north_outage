@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fmotalleb/go-scheduler"
 	"github.com/fmotalleb/go-tools/broadcast"
 	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
@@ -58,21 +59,24 @@ func Serve(ctx context.Context) error {
 	)
 
 	bc := broadcast.NewBroadcaster[models.Notification](l)
+
+	sc := scheduler.NewCallback(
+		ctx,
+		scheduler.WithTickerCycle[scheduler.Callback](time.Minute),
+	)
+
+	defer sc.Close()
 	wg.Go(
 		func() error {
-			ch := eventToNotificationTransformer(ctx, db, ec)
+			ch := eventToNotificationTransformer(ctx, db, ec, sc)
 			bc.BindTo(ch)
 			return nil
 		},
 	)
 
-	// notifyTrigger signals the notify-before scheduler to re-scan the database
-	// after each successful collection cycle.
-	notifyTrigger := make(chan struct{}, 1)
-
 	wg.Go(
 		func() error {
-			err := startCollector(ctx, cfg, ec, notifyTrigger)
+			err := startCollector(ctx, cfg, ec)
 			if err != nil {
 				l.Error("scheduler service collapsed", zap.Error(err))
 				return fmt.Errorf("scheduler service unrecoverable exception: %w", err)
@@ -81,20 +85,6 @@ func Serve(ctx context.Context) error {
 		},
 	)
 
-	wg.Go(
-		func() error {
-			// Create a dedicated channel for pre-start notifications and register it
-			// with the broadcaster so messages are forwarded to Telegram / Mattermost.
-			preNotifyCh := make(chan models.Notification, notificationBufferSize)
-			bc.BindTo(preNotifyCh)
-			err := startNotifyBeforeScheduler(ctx, cfg, notifyTrigger, preNotifyCh)
-			if err != nil {
-				l.Error("notify-before scheduler collapsed", zap.Error(err))
-				return fmt.Errorf("notify-before scheduler unrecoverable exception: %w", err)
-			}
-			return nil
-		},
-	)
 	if cfg.Telegram.BotKey != "" {
 		wg.Go(
 			func() error {
@@ -125,8 +115,10 @@ func Serve(ctx context.Context) error {
 	return wg.Wait()
 }
 
-func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event) <-chan models.Notification {
+func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event, sc *scheduler.Scheduler[scheduler.Callback]) <-chan models.Notification {
 	notifications := make(chan models.Notification, eventsChannelBufferSize)
+	cfg, _ := config.Get(ctx)
+
 	db = db.Table("listeners")
 	go func() {
 		for {
@@ -141,6 +133,15 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 							Listener: &l,
 							Event:    &ev,
 						}
+						sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), func(ctx context.Context) {
+							select {
+							case <-ctx.Done():
+							case notifications <- models.Notification{
+								Listener: &l,
+								Event:    &ev,
+							}:
+							}
+						})
 					}
 				}
 			case <-ctx.Done():

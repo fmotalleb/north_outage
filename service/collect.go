@@ -19,8 +19,7 @@ import (
 
 // StartCollector schedules and runs the periodic event collection job.
 // The notifyTrigger channel is signaled after every successful collection so
-// the notify-before scheduler can scan for newly arrived events.
-func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Event, notifyTrigger chan<- struct{}) error {
+func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Event) error {
 	logger := log.FromContext(ctx).Named("CollectorScheduler")
 
 	parser := cron.NewParser(cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
@@ -32,9 +31,9 @@ func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Even
 	nextRun := schedule.Next(time.Now())
 	timeUntilNext := time.Until(nextRun)
 
-	scheduler := cron.New(cron.WithParser(parser))
+	cron := cron.New(cron.WithParser(parser))
 
-	jobID, err := scheduler.AddFunc(cfg.CollectCycle, makeCollectFunc(ctx, cfg, ec, notifyTrigger))
+	jobID, err := cron.AddFunc(cfg.CollectCycle, makeCollectFunc(ctx, cfg, ec))
 	if err != nil {
 		logger.Error("failed to register collector job", zap.Error(err))
 		return err
@@ -52,13 +51,13 @@ func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Even
 			zap.Duration("threshold", cfg.CollectOnStartThreshold),
 			zap.Duration("timeUntilNext", timeUntilNext),
 		)
-		go makeCollectFunc(ctx, cfg, ec, notifyTrigger)()
+		go makeCollectFunc(ctx, cfg, ec)()
 	}
 
 	// Start cron scheduler and block until context is canceled.
-	go scheduler.Start()
+	go cron.Start()
 	<-ctx.Done()
-	if innerCtx := scheduler.Stop(); innerCtx != nil {
+	if innerCtx := cron.Stop(); innerCtx != nil {
 		<-innerCtx.Done()
 	}
 	return nil
@@ -66,8 +65,7 @@ func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Even
 
 // makeCollectFunc wraps collectAndStore in a cron-compatible function.
 // After a successful collection it also signals the notifyTrigger so that the
-// notify-before scheduler re-scans the database for newly stored events.
-func makeCollectFunc(ctx context.Context, cfg *config.Config, ec chan models.Event, notifyTrigger chan<- struct{}) func() {
+func makeCollectFunc(ctx context.Context, cfg *config.Config, ec chan models.Event) func() {
 	logger := log.FromContext(ctx).Named("CollectorJob")
 	return func() {
 		logger.Debug("collector cycle started")
@@ -77,11 +75,6 @@ func makeCollectFunc(ctx context.Context, cfg *config.Config, ec chan models.Eve
 			go func() {
 				for _, e := range events {
 					ec <- e
-				}
-				// Signal the notify-before scheduler after all new events are published.
-				select {
-				case notifyTrigger <- struct{}{}:
-				default:
 				}
 			}()
 		}
