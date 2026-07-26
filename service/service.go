@@ -62,7 +62,7 @@ func Serve(ctx context.Context) error {
 
 	sc := scheduler.NewCallback(
 		ctx,
-		scheduler.WithTickerCycle[scheduler.Callback](time.Minute),
+		scheduler.WithTickerCycle[scheduler.Callback](time.Second),
 	)
 
 	defer sc.Close()

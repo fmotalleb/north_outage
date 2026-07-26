@@ -30,11 +30,10 @@ func registerSearchHandlers(b *bot.Bot) {
 
 func registerTextHandlers(b *bot.Bot) {
 	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
-		msg := messageFromUpdate(update)
-		if msg == nil {
+		if update == nil || update.Message == nil {
 			return false
 		}
-		text := strings.TrimSpace(msg.Text)
+		text := strings.TrimSpace(update.Message.Text)
 		return text != "" && !strings.HasPrefix(text, "/")
 	}, searchByText)
 }
