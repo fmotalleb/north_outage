@@ -2,6 +2,7 @@ package collector
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -125,7 +126,9 @@ func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.
 			logger.Warn("failed to load Asia/Tehran timezone, falling back to UTC", zap.Error(err))
 			loc = time.UTC
 		}
-		date, err := jalali.ParseInLocation("2006/01/02 15:04", v.OutageDate+" "+v.OutageTime, loc)
+		// sometimes outages omit time, maybe unplanned ones?
+		ot := cmp.Or(v.OutageTime, "00:00")
+		date, err := jalali.ParseInLocation("2006/01/02 15:04", v.OutageDate+" "+ot, loc)
 		if err != nil {
 			logger.Error("failed to parse jalali start date", zap.Error(err), zap.Any("event", v))
 			continue
