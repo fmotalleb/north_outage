@@ -54,7 +54,7 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 			sp.MessageThreadID = int(n.Listener.TelegramTID)
 			cfg, err := config.Get(ctx)
 			notifyWeather := err == nil && cfg.Weather.Notify
-			sp.Text = formatNotification(ctx, n.Event, notifyWeather)
+			sp.Text = formatNotification(ctx, n.Message, n.Event, notifyWeather)
 			m, err := b.SendMessage(ctx, sp)
 			if err != nil {
 				l.Error("failed to send message to telegram", zap.Error(err))
@@ -67,12 +67,13 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 	}
 }
 
-func formatNotification(ctx context.Context, ev *im.Event, notifyWeather bool) string {
+func formatNotification(ctx context.Context, message string, ev *im.Event, notifyWeather bool) string {
 	// Format date in Jalali (Persian) calendar
 	startJalali := jalali.FromGregorian(ev.Start)
 	dateStr := startJalali.FormatPersian("2006/01/02")
 
-	msg := fmt.Sprintf("🏙 %s\n📍 %s\n🗓 %s\n⏰ %s %s — %s %s",
+	msg := fmt.Sprintf("%s:\n🏙 %s\n📍 %s\n🗓 %s\n⏰ %s %s — %s %s",
+		message,
 		ev.City,
 		ev.Address,
 		dateStr,

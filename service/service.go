@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fmotalleb/go-scheduler"
+	"github.com/fmotalleb/go-scheduler/worker"
 	"github.com/fmotalleb/go-tools/broadcast"
 	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
@@ -60,15 +61,9 @@ func Serve(ctx context.Context) error {
 
 	bc := broadcast.NewBroadcaster[models.Notification](l)
 
-	sc := scheduler.NewCallback(
-		ctx,
-		scheduler.WithTickerCycle[scheduler.Callback](time.Minute),
-	)
-
-	defer sc.Close()
 	wg.Go(
 		func() error {
-			ch := eventToNotificationTransformer(ctx, db, ec, sc)
+			ch := eventToNotificationTransformer(ctx, db, ec)
 			bc.BindTo(ch)
 			return nil
 		},
@@ -115,9 +110,21 @@ func Serve(ctx context.Context) error {
 	return wg.Wait()
 }
 
-func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event, sc *scheduler.Scheduler[scheduler.Callback]) <-chan models.Notification {
+func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event) <-chan models.Notification {
 	notifications := make(chan models.Notification, eventsChannelBufferSize)
 	cfg, _ := config.Get(ctx)
+
+	sc := scheduler.New[models.Notification](
+		ctx,
+		worker.NewWorkerPool(ctx, func(ctx context.Context, n models.Notification) {
+			select {
+			case <-ctx.Done():
+			case notifications <- n:
+			}
+		}, 4, 100),
+		scheduler.WithTickerCycle[models.Notification](time.Minute),
+	)
+	defer sc.Close()
 
 	db = db.Table("listeners")
 	go func() {
@@ -132,15 +139,12 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 						notifications <- models.Notification{
 							Listener: &l,
 							Event:    &ev,
+							Message:  "دیتای جدید",
 						}
-						sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), func(ctx context.Context) {
-							select {
-							case <-ctx.Done():
-							case notifications <- models.Notification{
-								Listener: &l,
-								Event:    &ev,
-							}:
-							}
+						sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
+							Listener: &l,
+							Event:    &ev,
+							Message:  "به زودی",
 						})
 					}
 				}
