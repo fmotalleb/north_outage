@@ -3,17 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-	"sync"
-	"time"
 
-	"github.com/fmotalleb/go-scheduler"
-	"github.com/fmotalleb/go-scheduler/worker"
 	"github.com/fmotalleb/go-tools/broadcast"
 	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
 
 	"github.com/fmotalleb/north_outage/config"
 	"github.com/fmotalleb/north_outage/database"
@@ -40,7 +34,7 @@ func Serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&models.Listener{}, &models.Event{}, &models.Notification{}); err != nil {
+	if err = db.AutoMigrate(&models.Listener{}, &models.Event{}, &models.Notification{}, &models.ScheduledNotification{}); err != nil {
 		return err
 	}
 	l.Info("config initialized", zap.Any("cfg", cfg))
@@ -108,73 +102,4 @@ func Serve(ctx context.Context) error {
 	}
 
 	return wg.Wait()
-}
-
-func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event) <-chan models.Notification {
-	notifications := make(chan models.Notification, eventsChannelBufferSize)
-	cfg, _ := config.Get(ctx)
-
-	sc := scheduler.New[models.Notification](
-		ctx,
-		worker.NewWorkerPool(ctx, func(ctx context.Context, n models.Notification) {
-			select {
-			case <-ctx.Done():
-			case notifications <- n:
-			}
-		}, 4, 100),
-		scheduler.WithTickerCycle[models.Notification](time.Minute),
-	)
-	defer sc.Close()
-
-	db = db.Table("listeners")
-	go func() {
-		for {
-			select {
-			case ev := <-events:
-				for _, l := range getListeners(db) {
-					if ev.City != l.City {
-						continue
-					}
-					if strings.Contains(ev.Address, l.SearchTerm) {
-						notifications <- models.Notification{
-							Listener: &l,
-							Event:    &ev,
-							Message:  "دیتای جدید",
-						}
-						sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
-							Listener: &l,
-							Event:    &ev,
-							Message:  "به زودی",
-						})
-					}
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-
-	return notifications
-}
-
-var (
-	listenersCacheMu    sync.Mutex
-	listenersCache      []models.Listener
-	listenersCacheExpAt time.Time
-)
-
-func getListeners(db *gorm.DB) []models.Listener {
-	listenersCacheMu.Lock()
-	defer listenersCacheMu.Unlock()
-
-	now := time.Now()
-	if listenersCache != nil && now.Before(listenersCacheExpAt) {
-		return listenersCache
-	}
-
-	listeners := make([]models.Listener, 0)
-	db.Find(&listeners)
-	listenersCache = listeners
-	listenersCacheExpAt = now.Add(10 * time.Second)
-	return listeners
 }
