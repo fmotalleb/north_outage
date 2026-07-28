@@ -1,0 +1,8 @@
+⚠️ {{ .message }}:
+🏙 {{ .event.City }}
+📍 {{ .event.Address }}
+🗓 {{ .event.Start | relDate }} - {{ .event.Start | jFormat "2006/01/02" }} 
+⏰ {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | fanum }} — {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | fanum }}
+{{- if .weather }}
+🌤{{ .weather }}
+{{- end }}

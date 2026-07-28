@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"unicode/utf8"
 
@@ -12,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/database"
+	"github.com/fmotalleb/north_outage/internal/template"
 	im "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/helpers"
 	"github.com/fmotalleb/north_outage/telegram/message"
@@ -143,8 +143,12 @@ func buildBtns(search string, events []im.Event) [][]models.InlineKeyboardButton
 		}
 		seen[ev.City] = struct{}{}
 
-		// Button label: city + truncated address
-		label := fmt.Sprintf("🔍 %s | %s", ev.City, truncate(ev.Address, 20))
+		// Button label via template: city + truncated address
+		data := map[string]any{
+			"City":    ev.City,
+			"Address": truncate(ev.Address, 20),
+		}
+		label, _ := template.EvaluateTemplate(message.SearchBtn, data)
 		btn := models.InlineKeyboardButton{
 			Text:         label,
 			CallbackData: "listen:" + createRequest(search, ev.City),

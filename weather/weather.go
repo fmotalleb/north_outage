@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"golang.org/x/net/proxy"
+
+	"github.com/fmotalleb/north_outage/internal/template"
+	"github.com/fmotalleb/north_outage/telegram/message"
 )
 
 // ── Data types ──────────────────────────────────────────────────────────────
@@ -92,17 +95,25 @@ func FormatWeatherLine(w *WeatherData) string {
 	if w == nil || !w.Available {
 		return ""
 	}
-	parts := ""
+
+	data := map[string]any{}
 	if w.AvgTemp != nil {
-		parts += fmt.Sprintf(" 🌡%.0f°C", *w.AvgTemp)
+		data["Temp"] = *w.AvgTemp
+		data["HasTemp"] = true
 	}
 	if w.AvgHumidity != nil {
-		parts += fmt.Sprintf(" 💧%.0f%%", *w.AvgHumidity)
+		data["Humidity"] = *w.AvgHumidity
+		data["HasHumidity"] = true
 	}
 	if w.AvgCloud != nil {
-		parts += fmt.Sprintf(" ☁%.0f%%", *w.AvgCloud)
+		data["Cloud"] = *w.AvgCloud
+		data["HasCloud"] = true
 	}
-	return parts
+	out, err := template.EvaluateTemplate(message.WeatherLine, data)
+	if err != nil {
+		return ""
+	}
+	return out
 }
 
 // ── City coordinates (Mazandaran province, Iran) ───────────────────────────

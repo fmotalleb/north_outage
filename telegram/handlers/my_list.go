@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/database"
+	"github.com/fmotalleb/north_outage/internal/template"
 	im "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/helpers"
 	"github.com/fmotalleb/north_outage/telegram/message"
@@ -89,7 +90,11 @@ func buildMyListKeyboard(listeners []im.Listener) [][]models.InlineKeyboardButto
 	buttons := make([][]models.InlineKeyboardButton, 0, n+1)
 	for i := 0; i < n; i++ {
 		li := listeners[i]
-		label := fmt.Sprintf("❌ %s", li.City)
+		// Button label via template
+		data := map[string]any{
+			"City": li.City,
+		}
+		label, _ := template.EvaluateTemplate(message.RemoveBtn, data)
 		buttons = append(buttons, []models.InlineKeyboardButton{
 			{
 				Text:         label,
@@ -234,7 +239,16 @@ func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	mp.Text = fmt.Sprintf("⚠️ آیا مطمئن هستید که می‌خواهید هر %d آیتم مانیتور شده را حذف کنید؟", count)
+	data := map[string]any{
+		"count": count,
+	}
+	out, err := message.EvaluateMessageTemplate(message.ClearConfirm, data, update)
+	if err != nil {
+		l.Error("failed to evaluate clear confirmation template", zap.Error(err))
+		mp.Text = "خطایی در نمایش پیام پیش اومده"
+	} else {
+		mp.Text = out
+	}
 	mp.ReplyMarkup = &models.InlineKeyboardMarkup{
 		InlineKeyboard: [][]models.InlineKeyboardButton{
 			{
@@ -278,7 +292,13 @@ func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	msg := update.CallbackQuery.Message.Message
 
-	text := fmt.Sprintf("🗑️ <b>همه آیتم‌ها حذف شدند</b>\n\nتعداد: %d مورد", result.RowsAffected)
+	data := map[string]any{
+		"count": result.RowsAffected,
+	}
+	text, err := message.EvaluateMessageTemplate(message.ClearDone, data, update)
+	if err != nil {
+		l.Error("failed to evaluate clear done template", zap.Error(err))
+	}
 
 	editParams := &bot.EditMessageTextParams{
 		ChatID:      msg.Chat.ID,

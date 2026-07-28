@@ -11,11 +11,13 @@ import (
 	"strings"
 
 	"github.com/fmotalleb/go-tools/git"
+	"github.com/fmotalleb/go-tools/log"
 	tgmodels "github.com/go-telegram/bot/models"
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/config"
 	"github.com/fmotalleb/north_outage/database"
+	"github.com/fmotalleb/north_outage/internal/template"
 	nmodels "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/message"
 	"github.com/fmotalleb/north_outage/weather"
@@ -218,7 +220,7 @@ func handleSearch(req *slashCommandRequest) mattermostResponse {
 	data := map[string]any{"results": events}
 	out, err := message.EvaluateMessageTemplate(message.Search, data, update)
 	if err != nil || out == "" {
-		out = fmt.Sprintf("Found %d matching outages.", len(events))
+		out = "موردی یافت نشد"
 	}
 
 	resp := makeResponse(req, out)
@@ -363,18 +365,23 @@ func toString(v any) string {
 }
 
 func formatMMNotification(ctx context.Context, ev *nmodels.Event, notifyWeather bool) string {
-	msg := fmt.Sprintf("🏙 %s\n📍 %s\n⏰ %s %s — %s %s",
-		ev.City,
-		ev.Address,
-		ev.StartClock(), ev.Start.Format("15:04"),
-		ev.EndClock(), ev.End.Format("15:04"),
-	)
+	data := map[string]any{
+		"event": ev,
+	}
+
 	if notifyWeather {
 		if w := weather.FormatWeatherLine(weather.GetWeather(ctx, ev.City, ev.Start, ev.End)); w != "" {
-			msg += "\n🌤" + w
+			data["weather"] = w
 		}
 	}
-	return msg
+
+	out, err := template.EvaluateTemplate(message.MMNotification, data)
+	if err != nil {
+		log.FromContext(ctx).Named("formatMMNotification").
+			Error("failed to evaluate mattermost notification template", zap.Error(err))
+		return ""
+	}
+	return out
 }
 
 func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg *config.Config, nc <-chan nmodels.Notification) {

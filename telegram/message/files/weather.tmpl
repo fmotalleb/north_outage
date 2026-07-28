@@ -1,0 +1,1 @@
+{{- if .HasTemp }} 🌡{{ printf "%.0f" .Temp }}°C{{ end }}{{- if .HasHumidity }} 💧{{ printf "%.0f" .Humidity }}%{{ end }}{{- if .HasCloud }} ☁{{ printf "%.0f" .Cloud }}%{{ end }}

@@ -2,16 +2,16 @@ package telegram
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/fmotalleb/go-jalali"
 	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/config"
+	"github.com/fmotalleb/north_outage/internal/template"
 	im "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/handlers"
+	"github.com/fmotalleb/north_outage/telegram/message"
 	"github.com/fmotalleb/north_outage/weather"
 
 	"github.com/go-telegram/bot"
@@ -67,23 +67,23 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 	}
 }
 
-func formatNotification(ctx context.Context, message string, ev *im.Event, notifyWeather bool) string {
-	// Format date in Jalali (Persian) calendar
-	startJalali := jalali.FromGregorian(ev.Start)
-	dateStr := startJalali.FormatPersian("2006/01/02")
+func formatNotification(ctx context.Context, msg string, ev *im.Event, notifyWeather bool) string {
+	data := map[string]any{
+		"message": msg,
+		"event":   ev,
+	}
 
-	msg := fmt.Sprintf("%s:\n🏙 %s\n📍 %s\n🗓 %s\n⏰ %s %s — %s %s",
-		message,
-		ev.City,
-		ev.Address,
-		dateStr,
-		ev.StartClock(), ev.Start.Format("15:04"),
-		ev.EndClock(), ev.End.Format("15:04"),
-	)
 	if notifyWeather {
 		if w := weather.FormatWeatherLine(weather.GetWeather(ctx, ev.City, ev.Start, ev.End)); w != "" {
-			msg += "\n🌤" + w
+			data["weather"] = w
 		}
 	}
-	return msg
+
+	out, err := template.EvaluateTemplate(message.Notification, data)
+	if err != nil {
+		log.FromContext(ctx).Named("formatNotification").
+			Error("failed to evaluate notification template", zap.Error(err))
+		return ""
+	}
+	return out
 }

@@ -18,7 +18,14 @@ func readOrPanic(key string) string {
 }
 
 var (
-	Help   = readOrPanic("help")
-	Search = readOrPanic("search")
-	List   = readOrPanic("list")
+	Help             = readOrPanic("help")
+	Search           = readOrPanic("search")
+	List             = readOrPanic("list")
+	ClearConfirm     = readOrPanic("clear_confirm")
+	ClearDone        = readOrPanic("clear_done")
+	Notification     = readOrPanic("notification")
+	MMNotification   = readOrPanic("mm_notification")
+	SearchBtn        = readOrPanic("search_btn")
+	RemoveBtn        = readOrPanic("remove_btn")
+	WeatherLine      = readOrPanic("weather")
 )
