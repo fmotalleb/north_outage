@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Vazirmatn', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Vazir', 'system-ui', 'sans-serif'],
       },
       colors: {
         ink: {

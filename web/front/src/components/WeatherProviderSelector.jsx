@@ -36,7 +36,7 @@ export default function WeatherProviderSelector({ value, onChange }) {
                   <div className={`text-sm font-semibold ${active ? 'text-cyan-100' : 'text-slate-100'}`}>
                     {p.name}
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-0.5 line-clamp-2">{p.description}</div>
+                  <div className="text-xs md:text-[11px] text-slate-400 mt-0.5 line-clamp-2">{p.description}</div>
                 </div>
                 <div
                   className={`shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center ${
@@ -50,7 +50,7 @@ export default function WeatherProviderSelector({ value, onChange }) {
           )
         })}
       </div>
-      <p className="mt-3 text-[10px] text-slate-500 leading-relaxed">
+      <p className="mt-3 text-[11px] md:text-[10px] text-slate-500 leading-relaxed">
         داده‌ها مستقیماً از API ارائه‌دهنده دریافت می‌شوند. هیچ کلیدی در فرانت‌اند ذخیره نمی‌شود.
       </p>
     </section>

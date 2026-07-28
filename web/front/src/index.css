@@ -2,6 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted Vazir font (Farsi-Digits variant) — no external CDN dependency */
+/* FD variant uses Persian numerals (۰-۹) while keeping identical letter shapes */
+@font-face {
+  font-family: 'Vazir';
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Vazir-Thin-FD.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Vazir';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Vazir-Light-FD.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Vazir';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Vazir-Regular-FD.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Vazir';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Vazir-Medium-FD.woff2') format('woff2');
+}
+
+/* No dedicated SemiBold file — falls back to Bold (700) */
+@font-face {
+  font-family: 'Vazir';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Vazir-Bold-FD.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Vazir';
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Vazir-Black-FD.woff2') format('woff2');
+}
+
 :root {
   color-scheme: dark;
 }
@@ -14,7 +65,7 @@ body,
 
 body {
   margin: 0;
-  font-family: 'Vazirmatn', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Vazir', system-ui, -apple-system, sans-serif;
   background:
     radial-gradient(1200px 600px at 90% -10%, rgba(168, 85, 247, 0.18), transparent 60%),
     radial-gradient(900px 500px at -10% 10%, rgba(34, 211, 238, 0.18), transparent 60%),
@@ -51,7 +102,7 @@ body {
     @apply glass rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)];
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm md:text-xs font-medium;
   }
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-200 select-none;
@@ -70,7 +121,7 @@ body {
     @apply input appearance-none pr-9 cursor-pointer;
   }
   .label {
-    @apply block text-xs font-medium text-slate-400 mb-1.5;
+    @apply block text-sm md:text-xs font-medium text-slate-400 mb-1.5;
   }
 }
 

@@ -35,7 +35,7 @@ export default function FavoriteOutages({
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-amber-400">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
-          <h2 className="text-sm font-semibold text-amber-200">علاقه‌مندی‌ها</h2>
+          <h2 className="text-base md:text-sm font-semibold text-amber-200">علاقه‌مندی‌ها</h2>
           <div className="mr-auto">
             <div className="w-4 h-4 rounded-full border-2 border-amber-400/40 border-t-transparent animate-spin" />
           </div>
@@ -60,8 +60,8 @@ export default function FavoriteOutages({
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-amber-400">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
-          <h2 className="text-sm font-semibold text-amber-200">علاقه‌مندی‌ها</h2>
-          <span className="chip border border-amber-400/20 bg-amber-500/10 text-amber-300 text-[11px]">
+          <h2 className="text-base md:text-sm font-semibold text-amber-200">علاقه‌مندی‌ها</h2>
+          <span className="chip border border-amber-400/20 bg-amber-500/10 text-amber-300 text-xs md:text-[11px]">
             {favoriteOutages.length}
           </span>
           {favoritesLoading && (
@@ -70,7 +70,7 @@ export default function FavoriteOutages({
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="btn-ghost text-[11px] px-2 py-1"
+            className="btn-ghost text-xs md:text-[11px] px-2 py-1"
             onClick={onRefresh}
             disabled={favoritesLoading}
             type="button"

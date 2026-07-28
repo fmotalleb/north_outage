@@ -101,21 +101,21 @@ export default function FilterBar({
             value={sort}
             onChange={setSort}
             options={sortOptions}
-            className="w-auto min-w-[180px]"
+            className="w-auto min-w-[180px] h-10"
           />
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap min-h-[44px]">
           {/* Result count placed BEFORE clear-filter and refresh buttons */}
           <span
-            className={`chip border text-xs ${
+            className={`chip border text-sm md:text-xs h-10 ${
               hasActiveFilter
                 ? 'bg-cyan-500/15 text-cyan-200 border-cyan-400/30'
                 : 'bg-white/5 text-slate-300 border-white/10'
             }`}
             title={`${resultCount} از ${totalCount} رویداد نمایش داده می‌شود`}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="8" y1="6" x2="21" y2="6" />
               <line x1="8" y1="12" x2="21" y2="12" />
               <line x1="8" y1="18" x2="21" y2="18" />
@@ -127,7 +127,7 @@ export default function FilterBar({
           </span>
 
           <button
-            className="btn-ghost disabled:opacity-40 disabled:cursor-not-allowed"
+            className="btn-ghost h-10 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={reset}
             disabled={!hasActiveFilter}
             type="button"
@@ -138,7 +138,7 @@ export default function FilterBar({
             </svg>
             پاک کردن فیلترها
           </button>
-          <button className="btn-primary" onClick={onRefresh} disabled={loading} type="button">
+          <button className="btn-primary h-10" onClick={onRefresh} disabled={loading} type="button">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={loading ? 'animate-spin' : ''}>
               <polyline points="23 4 23 10 17 10" />
               <polyline points="1 20 1 14 7 14" />

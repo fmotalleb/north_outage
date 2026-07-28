@@ -84,7 +84,7 @@ export default function WeatherPanel({ providerId, outage }) {
         <div className="rounded-lg bg-gradient-to-l from-orange-500/10 to-rose-500/10 border border-orange-400/20 px-3 py-2">
           <div className="flex items-center gap-1.5 text-orange-300">
             <WeatherIcon code="temp" />
-            <span className="text-[11px]">دما</span>
+            <span className="text-xs md:text-[11px]">دما</span>
           </div>
           <div className="mt-0.5 text-lg font-bold text-orange-100">
             {fmt(data.avgTemp)}°C
@@ -98,7 +98,7 @@ export default function WeatherPanel({ providerId, outage }) {
         <div className="rounded-lg bg-gradient-to-l from-cyan-500/10 to-blue-500/10 border border-cyan-400/20 px-3 py-2">
           <div className="flex items-center gap-1.5 text-cyan-300">
             <WeatherIcon code="humidity" />
-            <span className="text-[11px]">رطوبت</span>
+            <span className="text-xs md:text-[11px]">رطوبت</span>
           </div>
           <div className="mt-0.5 text-lg font-bold text-cyan-100">
             {fmt(data.avgHumidity, 0)}%
@@ -112,7 +112,7 @@ export default function WeatherPanel({ providerId, outage }) {
         <div className="rounded-lg bg-gradient-to-l from-slate-400/10 to-slate-600/10 border border-slate-400/20 px-3 py-2">
           <div className="flex items-center gap-1.5 text-slate-300">
             <WeatherIcon code="cloud" />
-            <span className="text-[11px]">ابر</span>
+            <span className="text-xs md:text-[11px]">ابر</span>
           </div>
           <div className="mt-0.5 text-lg font-bold text-slate-100">
             {Number.isFinite(cloudPct) ? fmt(cloudPct, 0) + '%' : '—'}

@@ -57,7 +57,7 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
             {/* STATUS */}
             <div className={`flex items-center gap-2 px-3 h-full ${meta.cls}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
-              <span className="text-xs leading-none whitespace-nowrap">
+              <span className="text-sm md:text-xs leading-none whitespace-nowrap">
                 {meta.label}
               </span>
             </div>
@@ -65,7 +65,7 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
             {/* WEATHER */}
             <button
               onClick={onToggle}
-              className="flex items-center gap-1 px-3 h-full text-xs text-slate-200 hover:text-slate-100 transition shrink-0"
+              className="flex items-center gap-1 px-3 h-full text-sm md:text-xs text-slate-200 hover:text-slate-100 transition shrink-0"
               aria-expanded={expanded}
             >
               <svg
@@ -123,15 +123,15 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
         {/* 50/50 PANELS ALWAYS */}
         <div className="mt-auto pt-4 grid grid-cols-2 gap-3">
           <div className={`rounded-xl border ${meta.panel} px-3 py-2.5`}>
-            <div className="text-[11px] mb-0.5">شروع قطعی</div>
-            <div className={`text-sm font-medium ${meta.panelValue}`}>
+            <div className="text-xs md:text-[11px] mb-0.5">شروع قطعی</div>
+            <div className={`text-base md:text-sm font-medium ${meta.panelValue}`}>
               {formatDateTime(outage.start_at)}
             </div>
           </div>
 
           <div className={`rounded-xl border ${meta.panel} px-3 py-2.5`}>
-            <div className="text-[11px] mb-0.5">پایان قطعی</div>
-            <div className={`text-sm font-medium ${meta.panelValue}`}>
+            <div className="text-xs md:text-[11px] mb-0.5">پایان قطعی</div>
+            <div className={`text-base md:text-sm font-medium ${meta.panelValue}`}>
               {formatDateTime(outage.end_at)}
             </div>
           </div>

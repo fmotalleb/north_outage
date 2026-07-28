@@ -40,7 +40,7 @@ export default function Header({ total, active, upcoming, past, lastUpdated }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
           {stats.map((s) => (
             <div key={s.label} className="card px-3.5 py-2.5 min-w-[110px]">
-              <div className="text-[11px] uppercase tracking-wider text-slate-400">{s.label}</div>
+              <div className="text-sm md:text-[11px] uppercase tracking-wider text-slate-400">{s.label}</div>
               <div className={`mt-0.5 text-2xl font-bold bg-gradient-to-l ${s.gradient} bg-clip-text text-transparent`}>
                 {s.value}
               </div>
