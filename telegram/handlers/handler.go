@@ -12,4 +12,5 @@ func SetupHandlers(ctx context.Context, b *bot.Bot) {
 	registerTextHandlers(b)
 	registerVersionHandlers(b)
 	registerListenHandlers(b)
+	registerMyListHandlers(b)
 }
