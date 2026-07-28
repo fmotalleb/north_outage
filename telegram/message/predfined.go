@@ -20,4 +20,5 @@ func readOrPanic(key string) string {
 var (
 	Help   = readOrPanic("help")
 	Search = readOrPanic("search")
+	List   = readOrPanic("list")
 )

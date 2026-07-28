@@ -12,6 +12,7 @@ import (
 	"github.com/fmotalleb/north_outage/database"
 	im "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/helpers"
+	"github.com/fmotalleb/north_outage/telegram/message"
 )
 
 const maxListItems = 20
@@ -40,34 +41,35 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	db := database.Get()
 	var listeners []im.Listener
-	db.Where("telegram_cid = ?", chatID).Find(&listeners)
+	err := db.Where("telegram_cid = ?", chatID).Find(&listeners).Error
 
 	mp := helpers.MakeMessage(update)
 
-	if len(listeners) == 0 {
+	if err != nil {
+		l.Error("failed to query listeners", zap.Error(err))
+		mp.Text = "خطا در دریافت داده"
+	} else if len(listeners) == 0 {
 		mp.Text = "📭 شما هیچ آیتمی را مانیتور نکردید.\n\nبرای افزودن، یک پیام متنی با آدرس موردنظر بفرستید یا از دستور /search استفاده کنید."
-		msg, err := b.SendMessage(ctx, mp)
+	} else {
+		// Limit to maxListItems
+		if len(listeners) > maxListItems {
+			listeners = listeners[:maxListItems]
+		}
+
+		data := map[string]any{
+			"listeners": listeners,
+		}
+		var out string
+		out, err = message.EvaluateMessageTemplate(message.List, data, update)
 		if err != nil {
-			l.Error("failed to send empty list", zap.Error(err))
-			return
+			l.Error("failed to evaluate list template", zap.Error(err), zap.Any("chat", chat))
+			mp.Text = "خطایی در نمایش خروجی پیش اومده"
+		} else {
+			mp.Text = out
+			mp.ReplyMarkup = &models.InlineKeyboardMarkup{
+				InlineKeyboard: buildMyListKeyboard(listeners),
+			}
 		}
-		l.Debug("sent empty list", zap.Int("id", msg.ID))
-		return
-	}
-
-	text := "📋 <b>لیست مانیتور شده‌های شما</b>:\n\n"
-	for i, li := range listeners {
-		if i >= maxListItems {
-			text += fmt.Sprintf("\n… و %d مورد دیگر", len(listeners)-maxListItems)
-			break
-		}
-		text += fmt.Sprintf("%d. 🏙 <b>%s</b>\n   🔍 %s\n\n", i+1, li.City, li.SearchTerm)
-	}
-	text += "👇 برای حذف هر آیتم، دکمه مربوطه را بزنید."
-
-	mp.Text = text
-	mp.ReplyMarkup = &models.InlineKeyboardMarkup{
-		InlineKeyboard: buildMyListKeyboard(listeners),
 	}
 
 	msg, err := b.SendMessage(ctx, mp)
@@ -147,9 +149,19 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	// Refresh the list
 	var listeners []im.Listener
-	db.Where("telegram_cid = ?", chatID).Find(&listeners)
+	err = db.Where("telegram_cid = ?", chatID).Find(&listeners).Error
 
 	msg := update.CallbackQuery.Message.Message
+
+	if err != nil {
+		l.Error("failed to refresh listeners after removal", zap.Error(err))
+		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            "خطا در دریافت داده",
+			ShowAlert:       true,
+		})
+		return
+	}
 
 	if len(listeners) == 0 {
 		// All removed — update text and remove keyboard
@@ -164,16 +176,25 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	// Build updated message
-	text := "📋 <b>لیست مانیتور شده‌های شما</b>:\n\n"
-	for i, li := range listeners {
-		if i >= maxListItems {
-			text += fmt.Sprintf("\n… و %d مورد دیگر", len(listeners)-maxListItems)
-			break
-		}
-		text += fmt.Sprintf("%d. 🏙 <b>%s</b>\n   🔍 %s\n\n", i+1, li.City, li.SearchTerm)
+	// Limit to maxListItems
+	if len(listeners) > maxListItems {
+		listeners = listeners[:maxListItems]
 	}
-	text += "👇 برای حذف هر آیتم، دکمه مربوطه را بزنید."
+
+	// Build updated message via template
+	data := map[string]any{
+		"listeners": listeners,
+	}
+	text, err := message.EvaluateMessageTemplate(message.List, data, update)
+	if err != nil {
+		l.Error("failed to evaluate list template", zap.Error(err))
+		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            "خطایی در نمایش خروجی پیش اومده",
+			ShowAlert:       true,
+		})
+		return
+	}
 
 	editParams := &bot.EditMessageTextParams{
 		ChatID:      msg.Chat.ID,

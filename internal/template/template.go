@@ -14,6 +14,7 @@ var funcs = map[string]any{
 	"jFormat":  jFormat,
 	"fanum":    faNum,
 	"relDate":  relativeDate,
+	"add":      add,
 }
 
 // EvaluateTemplate evaluates a template string with the provided data using the
@@ -59,6 +60,10 @@ func faNum(in any) string {
 		},
 		sin,
 	)
+}
+
+func add(a, b int) int {
+	return a + b
 }
 
 func relativeDate(t time.Time) string {
