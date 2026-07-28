@@ -10,18 +10,18 @@ import WeatherModal from './WeatherModal'
 const STATUS_META = {
   active: {
     label: 'در جریان',
-    cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30',
-    dot: 'bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse_soft',
+    cls: 'bg-rose-500/15 text-rose-300 border-rose-400/30',
+    dot: 'bg-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.8)] animate-pulse_soft',
   },
   upcoming: {
     label: 'پیش‌رو',
-    cls: 'bg-amber-500/15 text-amber-300 border-amber-400/30',
-    dot: 'bg-amber-400',
+    cls: 'bg-orange-500/15 text-orange-300 border-orange-400/30',
+    dot: 'bg-orange-400',
   },
   past: {
     label: 'پایان‌یافته',
-    cls: 'bg-slate-500/15 text-slate-400 border-slate-400/20',
-    dot: 'bg-slate-500',
+    cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-400/30',
+    dot: 'bg-cyan-400',
   },
 }
 
