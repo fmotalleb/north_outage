@@ -109,10 +109,6 @@ export function useFavorites() {
       const now = new Date()
       matched = matched.filter((item) => outageStatus(item.start_at, item.end_at, now) !== 'past')
 
-      // Remove locations from localStorage favorites when all their events have ended
-      const activeLocations = new Set(matched.map((item) => getLocationId(item)))
-      setFavorites((prev) => prev.filter((f) => activeLocations.has(f.id)))
-
       // Sort by start time ascending
       matched.sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
       setFavoriteOutages(matched)

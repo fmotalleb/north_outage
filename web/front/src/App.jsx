@@ -14,7 +14,7 @@ import { validateShape, UPDATED_AT_SCHEMA } from './utils/validateApi'
 
 // Schema for localStorage validation
 const SCHEMA = {
-  city: { default: 'all' },
+  city: { default: 'ساری' },
   status: { default: 'all', values: ['all', 'active', 'upcoming', 'past', 'active-upcoming'] },
   date: { default: 'all', values: ['all', 'today', 'tomorrow', 'week'] },
   sort: { default: 'start_asc', values: ['start_asc', 'start_desc', 'duration_desc', 'city'] },

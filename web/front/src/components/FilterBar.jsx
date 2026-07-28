@@ -45,7 +45,7 @@ export default function FilterBar({
     filters.date !== 'all'
 
   const reset = () =>
-    setFilters({ city: 'all', status: 'all', q: '', date: 'all' })
+    setFilters({ city: 'ساری', status: 'all', q: '', date: 'all' })
 
   return (
     <section className="card p-4 md:p-5">
