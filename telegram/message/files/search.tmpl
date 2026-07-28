@@ -1,9 +1,9 @@
 🤖 موارد یافت شده: {{ .results | len | int | fanum }}
 {{- range $e := slice .results 0 (min 4 (len .results)) }}
-
+---
 🗓 <b>{{ $e.Start | relDate }}</b> {{ $e.Start | jFormat "Monday 2006/01/02 January" | fanum }}
 ⏰ <b>{{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | fanum }}</b> تا <b>{{ $e.EndClock }}{{ $e.End | jFormat "15:04" | fanum }}</b>
 🏠 <b>{{ $e.City }}</b> - {{ $e.Address }}
 {{- end }}
 
-📌 در صورتی که بیشتر از آدرس های مدنظرت میبینی از فیلتر دقیقتری استفاده کن.
+📌 در صورتی که بیشتر از آدرس های مدنظرت می‌بینی از فیلتر دقیق‌تری استفاده کن.
