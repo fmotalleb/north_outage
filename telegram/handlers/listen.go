@@ -45,7 +45,7 @@ func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "این دکمه دیگر معتبر نیست",
-			ShowAlert:       true,
+			ShowAlert:       false,
 		})
 		return
 	}
@@ -53,11 +53,12 @@ func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
 	key := strings.TrimPrefix(update.CallbackQuery.Data, "listen:")
 	l.Debug("listen callback triggered", zap.String("key", key))
 
-	// cp := new(bot.AnswerCallbackQueryParams)
-	// cp.ShowAlert = true
-	// cp.CallbackQueryID = update.CallbackQuery.ID
-	// cp.Text = "لطفا کمی صبر کنید"
-	// _, _ = b.AnswerCallbackQuery(ctx, cp)
+	cp := &bot.AnswerCallbackQueryParams{
+		ShowAlert:       false,
+		CallbackQueryID: update.CallbackQuery.ID,
+		Text:            "لطفا کمی صبر کنید",
+	}
+	_, _ = b.AnswerCallbackQuery(ctx, cp)
 
 	mp := helpers.MakeMessage(update)
 	data, ok := mem.Pop(key)
@@ -114,7 +115,7 @@ func cancelListen(ctx context.Context, b *bot.Bot, update *models.Update) {
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		Text:            "لغو شد ✓",
-		ShowAlert:       true,
+		ShowAlert:       false,
 	})
 
 	// Remove the inline keyboard from the original message.

@@ -134,7 +134,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "خطا: شناسه نامعتبر",
-			ShowAlert:       true,
+			ShowAlert:       false,
 		})
 		return
 	}
@@ -151,7 +151,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "این آیتم یافت نشد یا متعلق به شما نیست",
-			ShowAlert:       true,
+			ShowAlert:       false,
 		})
 		return
 	}
@@ -174,7 +174,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "خطا در دریافت داده",
-			ShowAlert:       true,
+			ShowAlert:       false,
 		})
 		return
 	}
@@ -208,7 +208,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "خطایی در نمایش خروجی پیش اومده",
-			ShowAlert:       true,
+			ShowAlert:       false,
 		})
 		return
 	}
@@ -342,7 +342,7 @@ func cancelClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		Text:            "حذف لغو شد ✓",
-		ShowAlert:       true,
+		ShowAlert:       false,
 	})
 
 	// Remove the keyboard
@@ -368,7 +368,7 @@ func closeList(ctx context.Context, b *bot.Bot, update *models.Update) {
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		Text:            "بسته شد ✓",
-		ShowAlert:       true,
+		ShowAlert:       false,
 	})
 
 	// Remove the keyboard
