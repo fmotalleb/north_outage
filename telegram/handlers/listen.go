@@ -36,9 +36,12 @@ func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
-	l := log.Of(ctx).Named("listen")
+	chat := update.CallbackQuery.Message.Message.Chat
+	ctx = log.WithLogger(ctx, log.Of(ctx).Named("listen").With(zap.Any("chat", chat)))
+	l := log.Of(ctx)
+
 	if update.CallbackQuery.Message.Message == nil {
-		l.Error("callback query message is missing")
+		l.Error("callback query message missing")
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "این دکمه دیگر معتبر نیست",
@@ -46,52 +49,68 @@ func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
 		})
 		return
 	}
+
 	key := strings.TrimPrefix(update.CallbackQuery.Data, "listen:")
+	l.Debug("listen callback triggered", zap.String("key", key))
+
 	cp := new(bot.AnswerCallbackQueryParams)
 	cp.ShowAlert = true
 	cp.CallbackQueryID = update.CallbackQuery.ID
 	cp.Text = "لطفا کمی صبر کنید"
 	_, _ = b.AnswerCallbackQuery(ctx, cp)
+
 	mp := helpers.MakeMessage(update)
 	data, ok := mem.Pop(key)
 	if !ok {
-		l.Error("failed to retrieve data related to key", zap.String("key", key))
+		l.Error("listen request expired or not found in memory", zap.String("key", key))
 		responseError(ctx, l, mp, b)
 		return
 	}
+	l.Debug("listen request found in memory", zap.String("city", data.city), zap.String("search", data.search))
+
 	db := database.Get()
-	listen := new(im.Listener)
-	listen.City = data.city
-	listen.SearchTerm = data.search
-	listen.TelegramCID = update.CallbackQuery.Message.Message.Chat.ID
-	listen.TelegramTID = int64(update.CallbackQuery.Message.Message.MessageThreadID)
+	listener := new(im.Listener)
+	listener.City = data.city
+	listener.SearchTerm = data.search
+	listener.TelegramCID = update.CallbackQuery.Message.Message.Chat.ID
+	listener.TelegramTID = int64(update.CallbackQuery.Message.Message.MessageThreadID)
 	mp.Text = "در صورت دریافت اطلاعات جدید و همچنین بیست دقیقه قبل از قطعی بهت اطلاع میدم"
-	if err := db.Save(listen).Error; err != nil {
-		l.Error("failed to store request to database", zap.Any("request", listen), zap.Error(err))
+
+	l.Debug("saving listener to db", zap.Any("listener", listener))
+	if err := db.Save(listener).Error; err != nil {
+		l.Error("failed to save listener to db", zap.Any("request", listener), zap.Error(err))
 		mp.Text = "خطا در ذخیره‌سازی داده، احتمالا داری آیتم تکراری ذخیره میکنی"
+	} else {
+		l.Debug("listener saved successfully", zap.Uint("listener_id", listener.ID))
 	}
+
 	msg, err := b.SendMessage(ctx, mp)
 	if err != nil {
-		l.Error("failed to send search results", zap.Error(err))
+		l.Error("failed to send listen response", zap.Error(err))
 		return
 	}
-	l.Debug("sent message", zap.Int("id", msg.ID))
+	l.Debug("listen response sent", zap.Int("msg_id", msg.ID), zap.Uint("listener_id", listener.ID))
 }
 
 func responseError(ctx context.Context, l *zap.Logger, mp *bot.SendMessageParams, b *bot.Bot) {
+	l.Debug("sending expiry error to user")
 	mp.Text = "درخواست منقضی شد لطفا مجددا جست و جو کنید"
 	msg, err := b.SendMessage(ctx, mp)
 	if err != nil {
-		l.Error("failed to send search results", zap.Error(err))
+		l.Error("failed to send expiry error message", zap.Error(err))
 		return
 	}
-	l.Debug("sent error message", zap.Int("id", msg.ID))
+	l.Debug("expiry error sent", zap.Int("msg_id", msg.ID))
 }
 
 func cancelListen(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
+	chat := update.CallbackQuery.Message.Message.Chat
+	l := log.Of(ctx).Named("cancelListen").With(zap.Any("chat", chat))
+	l.Debug("user cancelled search")
+
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		Text:            "لغو شد ✓",
@@ -101,6 +120,7 @@ func cancelListen(ctx context.Context, b *bot.Bot, update *models.Update) {
 	// Remove the inline keyboard from the original message.
 	msg := update.CallbackQuery.Message.Message
 	if msg != nil {
+		l.Debug("removing inline keyboard from message", zap.Int("msg_id", msg.ID))
 		editParams := &bot.EditMessageReplyMarkupParams{
 			ChatID:      msg.Chat.ID,
 			MessageID:   msg.ID,

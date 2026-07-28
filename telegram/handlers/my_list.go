@@ -37,9 +37,10 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	chat := update.Message.Chat
 	chatID := chat.ID
+	ctx = log.WithLogger(ctx, log.Of(ctx).Named("myList").With(zap.Any("chat", chat)))
+	l := log.Of(ctx)
 
-	l := log.Of(ctx).Named("myList")
-
+	l.Debug("querying listeners from db", zap.Int64("chat_id", chatID))
 	db := database.Get()
 	var listeners []im.Listener
 	err := db.Where("telegram_c_id = ?", chatID).Find(&listeners).Error
@@ -50,11 +51,14 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 		l.Error("failed to query listeners", zap.Error(err))
 		mp.Text = "خطا در دریافت داده"
 	} else if len(listeners) == 0 {
+		l.Debug("no listeners found for chat")
 		mp.Text = "📭 شما هیچ آیتمی را مانیتور نکردید.\n\nبرای افزودن، یک پیام متنی با آدرس موردنظر بفرستید یا از دستور /search استفاده کنید."
 	} else {
+		l.Debug("listeners retrieved", zap.Int("count", len(listeners)))
 		// Limit to maxListItems
 		if len(listeners) > maxListItems {
 			listeners = listeners[:maxListItems]
+			l.Debug("listeners truncated to max", zap.Int("max", maxListItems))
 		}
 
 		data := map[string]any{
@@ -63,9 +67,10 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 		var out string
 		out, err = message.EvaluateMessageTemplate(message.List, data, update)
 		if err != nil {
-			l.Error("failed to evaluate list template", zap.Error(err), zap.Any("chat", chat))
+			l.Error("failed to evaluate list template", zap.Error(err))
 			mp.Text = "خطایی در نمایش خروجی پیش اومده"
 		} else {
+			l.Debug("list template evaluated successfully")
 			mp.Text = out
 			mp.ReplyMarkup = &models.InlineKeyboardMarkup{
 				InlineKeyboard: buildMyListKeyboard(listeners),
@@ -78,7 +83,7 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 		l.Error("failed to send mylist", zap.Error(err))
 		return
 	}
-	l.Debug("sent mylist", zap.Int("id", msg.ID))
+	l.Debug("mylist sent", zap.Int("msg_id", msg.ID), zap.Int("listener_count", len(listeners)))
 }
 
 func buildMyListKeyboard(listeners []im.Listener) [][]models.InlineKeyboardButton {
@@ -117,13 +122,15 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
-	l := log.Of(ctx).Named("removeListener")
+	chat := update.CallbackQuery.Message.Message.Chat
+	ctx = log.WithLogger(ctx, log.Of(ctx).Named("removeListener").With(zap.Any("chat", chat)))
+	l := log.Of(ctx)
 
 	// Parse the listener ID
 	var id uint
 	n, err := fmt.Sscanf(update.CallbackQuery.Data, "rm_listener:%d", &id)
 	if err != nil || n != 1 || id == 0 {
-		l.Error("failed to parse listener ID", zap.String("data", update.CallbackQuery.Data))
+		l.Error("failed to parse listener ID from callback", zap.String("data", update.CallbackQuery.Data))
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "خطا: شناسه نامعتبر",
@@ -133,13 +140,14 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	chatID := update.CallbackQuery.Message.Message.Chat.ID
+	l.Debug("removing listener", zap.Uint("listener_id", id), zap.Int64("chat_id", chatID))
 
 	// Delete the listener, scoped to this chat
 	db := database.Get()
 	result := db.Where("id = ? AND telegram_c_id = ?", id, chatID).Delete(&im.Listener{})
 	if result.RowsAffected == 0 {
 		l.Error("listener not found or not owned by this chat",
-			zap.Uint("id", id), zap.Int64("chat", chatID))
+			zap.Uint("listener_id", id), zap.Int64("chat_id", chatID))
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            "این آیتم یافت نشد یا متعلق به شما نیست",
@@ -147,6 +155,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		})
 		return
 	}
+	l.Debug("listener deleted", zap.Uint("listener_id", id), zap.Int64("rows_affected", result.RowsAffected))
 
 	// Answer callback — no alert, just a quick toast
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
@@ -154,6 +163,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 	})
 
 	// Refresh the list
+	l.Debug("refreshing listener list after removal")
 	var listeners []im.Listener
 	err = db.Where("telegram_c_id = ?", chatID).Find(&listeners).Error
 
@@ -170,6 +180,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	if len(listeners) == 0 {
+		l.Debug("all listeners removed — updating message")
 		// All removed — update text and remove keyboard
 		editParams := &bot.EditMessageTextParams{
 			ChatID:      msg.Chat.ID,
@@ -201,6 +212,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		})
 		return
 	}
+	l.Debug("list template re-evaluated after removal")
 
 	editParams := &bot.EditMessageTextParams{
 		ChatID:    msg.Chat.ID,
@@ -212,6 +224,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		},
 	}
 	_, _ = b.EditMessageText(ctx, editParams)
+	l.Debug("list message updated after removal")
 }
 
 func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -220,26 +233,29 @@ func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	chat := update.Message.Chat
 	chatID := chat.ID
-
-	l := log.Of(ctx).Named("clearAll")
+	ctx = log.WithLogger(ctx, log.Of(ctx).Named("clearAll").With(zap.Any("chat", chat)))
+	l := log.Of(ctx)
 
 	db := database.Get()
 	var count int64
+	l.Debug("counting listeners for chat", zap.Int64("chat_id", chatID))
 	db.Model(&im.Listener{}).Where("telegram_c_id = ?", chatID).Count(&count)
 
 	mp := helpers.MakeMessage(update)
 
 	if count == 0 {
+		l.Debug("no listeners to clear")
 		mp.Text = "📭 شما هیچ آیتمی برای پاک کردن ندارید."
 		msg, err := b.SendMessage(ctx, mp)
 		if err != nil {
-			l.Error("failed to send empty clear", zap.Error(err))
+			l.Error("failed to send empty clear message", zap.Error(err))
 			return
 		}
-		l.Debug("sent empty clear", zap.Int("id", msg.ID))
+		l.Debug("empty clear message sent", zap.Int("msg_id", msg.ID))
 		return
 	}
 
+	l.Debug("showing clear confirmation", zap.Int64("listener_count", count))
 	data := map[string]any{
 		"count": count,
 	}
@@ -272,14 +288,15 @@ func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
 		l.Error("failed to send clear confirmation", zap.Error(err))
 		return
 	}
-	l.Debug("sent clear confirmation", zap.Int("id", msg.ID))
+	l.Debug("clear confirmation sent", zap.Int("msg_id", msg.ID))
 }
 
 func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
-	l := log.Of(ctx).Named("confirmClear")
+	l := log.Of(ctx).Named("confirmClear").With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	l.Debug("user confirmed clear-all")
 
 	chatID := update.CallbackQuery.Message.Message.Chat.ID
 
@@ -289,7 +306,9 @@ func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	})
 
 	db := database.Get()
+	l.Debug("deleting all listeners for chat", zap.Int64("chat_id", chatID))
 	result := db.Where("telegram_c_id = ?", chatID).Delete(&im.Listener{})
+	l.Debug("listeners deleted", zap.Int64("rows_affected", result.RowsAffected))
 
 	msg := update.CallbackQuery.Message.Message
 
@@ -310,13 +329,15 @@ func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	_, _ = b.EditMessageText(ctx, editParams)
 
-	l.Debug("cleared all listeners", zap.Int64("chat", chatID), zap.Int64("count", result.RowsAffected))
+	l.Debug("clear-all done, message updated")
 }
 
 func cancelClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
+	l := log.Of(ctx).Named("cancelClear").With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	l.Debug("user cancelled clear-all")
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
@@ -327,6 +348,7 @@ func cancelClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	// Remove the keyboard
 	msg := update.CallbackQuery.Message.Message
 	if msg != nil {
+		l.Debug("removing inline keyboard on cancel")
 		editParams := &bot.EditMessageReplyMarkupParams{
 			ChatID:      msg.Chat.ID,
 			MessageID:   msg.ID,
@@ -340,6 +362,8 @@ func closeList(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
+	l := log.Of(ctx).Named("closeList").With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	l.Debug("user closed list")
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
@@ -350,6 +374,7 @@ func closeList(ctx context.Context, b *bot.Bot, update *models.Update) {
 	// Remove the keyboard
 	msg := update.CallbackQuery.Message.Message
 	if msg != nil {
+		l.Debug("removing inline keyboard on close")
 		editParams := &bot.EditMessageReplyMarkupParams{
 			ChatID:      msg.Chat.ID,
 			MessageID:   msg.ID,

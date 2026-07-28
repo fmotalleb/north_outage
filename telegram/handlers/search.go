@@ -41,18 +41,24 @@ func search(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.Message == nil {
 		return
 	}
+	chat := update.Message.Chat
+	ctx = log.WithLogger(ctx, log.Of(ctx).Named("search").With(zap.Any("chat", chat)))
+	l := log.Of(ctx)
+
 	query := commandArgument(update.Message.Text, searchCommand)
 	if query == "" {
+		l.Debug("empty /search command — prompting user")
 		mp := helpers.MakeMessage(update)
 		mp.Text = "عبارت جستجو را بعد از /search بنویس."
 		msg, err := b.SendMessage(ctx, mp)
 		if err != nil {
-			log.Of(ctx).Error("failed to send empty search prompt", zap.Error(err))
+			l.Error("failed to send empty search prompt", zap.Error(err))
 			return
 		}
-		log.Of(ctx).Debug("sent prompt", zap.Int("id", msg.ID))
+		l.Debug("sent empty-search prompt", zap.Int("msg_id", msg.ID))
 		return
 	}
+	l.Debug("handling /search command", zap.String("query", query))
 	handleSearch(ctx, b, update, query)
 }
 
@@ -65,18 +71,26 @@ func searchByText(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if query == "" {
 		return
 	}
-	log.Of(ctx).Debug("treating plain text as search", zap.String("query", query))
+	chat := update.Message.Chat
+	ctx = log.WithLogger(ctx, log.Of(ctx).Named("searchByText").With(zap.Any("chat", chat)))
+	l := log.Of(ctx)
+	l.Debug("treating plain text as search", zap.String("query", query))
 	handleSearch(ctx, b, update, query)
 }
 
 // handleSearch is the shared search logic used by both /search and plain text.
 func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query string) {
-	l := log.Of(ctx).Named("search")
+	l := log.Of(ctx)
+	l.Debug("fetching events matching query", zap.String("query", query))
 	events, err := fetchEvents(query)
+	if err != nil {
+		l.Error("failed to fetch events from db", zap.Error(err), zap.String("query", query))
+	} else {
+		l.Debug("events fetched", zap.Int("count", len(events)), zap.String("query", query))
+	}
 
 	mp := helpers.MakeMessage(update)
 	if err != nil {
-		l.Error("failed to fetch data from db", zap.Error(err))
 		mp.Text = "خطا در دریافت داده"
 	} else {
 		data := map[string]any{
@@ -85,14 +99,16 @@ func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query 
 		var out string
 		out, err = message.EvaluateMessageTemplate(message.Search, data, update)
 		if err != nil {
-			l.Error("failed to evaluate template", zap.Error(err), zap.Any("chat", update.Message.Chat))
+			l.Error("failed to evaluate search template", zap.Error(err))
 			mp.Text = "خطایی در نمایش خروجی پیش اومده"
 		} else {
+			l.Debug("search template evaluated", zap.Int("result_count", len(events)))
 			mp.Text = out
 		}
 	}
 
 	if len(events) > 0 {
+		l.Debug("building inline keyboard", zap.Int("button_count", len(events)))
 		mp.ReplyMarkup = &models.InlineKeyboardMarkup{
 			InlineKeyboard: buildBtns(query, events),
 		}
@@ -103,7 +119,7 @@ func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query 
 		l.Error("failed to send search results", zap.Error(err))
 		return
 	}
-	l.Debug("sent message", zap.Int("id", msg.ID))
+	l.Debug("search results sent", zap.Int("msg_id", msg.ID), zap.Int("result_count", len(events)))
 }
 
 func fetchEvents(search string) ([]im.Event, error) {
@@ -114,7 +130,6 @@ func fetchEvents(search string) ([]im.Event, error) {
 		Where("address LIKE ?", "%"+search+"%").
 		Limit(maxSearchResult).
 		Find(&out).Error
-	// sortEvents(out)
 	return out, err
 }
 

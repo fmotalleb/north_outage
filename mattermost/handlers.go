@@ -85,14 +85,26 @@ func commandHandler(c echo.Context) error {
 		})
 	}
 
+	l := log.Of(c.Request().Context()).Named("commandHandler")
+	l.Debug("mm slash command",
+		zap.String("cmd", req.Command),
+		zap.String("text", req.Text),
+		zap.String("user", req.UserName),
+		zap.String("channel", req.ChannelName),
+	)
+
 	if cfg := activeCfg; cfg != nil && cfg.Mattermost.CommandToken != "" && req.Token != cfg.Mattermost.CommandToken {
+		l.Warn("unauthorized mm command", zap.String("token", req.Token))
 		return c.JSON(http.StatusUnauthorized, mattermostResponse{
 			ResponseType: "ephemeral",
 			Text:         "unauthorized",
 		})
 	}
 
-	switch commandName(req.Command) {
+	cmd := commandName(req.Command)
+	l.Debug("dispatching mm command", zap.String("command", cmd))
+
+	switch cmd {
 	case "help", "start":
 		return c.JSON(http.StatusOK, makeResponse(req, helpText(req)))
 	case "version":
@@ -116,6 +128,13 @@ func actionHandler(c echo.Context) error {
 	}
 
 	action := strings.ToLower(toString(req.Context["action"]))
+	l := log.FromContext(c.Request().Context()).Named("actionHandler")
+	l.Debug("mm action received",
+		zap.String("action", action),
+		zap.String("user", req.UserID),
+		zap.String("channel", req.ChannelID),
+	)
+
 	switch action {
 	case "listen":
 		return c.JSON(http.StatusOK, handleListenAction(req))
@@ -391,15 +410,22 @@ func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg 
 		return
 	}
 	postURL := joinURL(base, "/api/v4/posts")
+	l.Debug("mattermost notification binder started")
 	for {
 		select {
 		case n := <-nc:
 			if n.Listener == nil || n.Event == nil {
+				l.Debug("skipping notification with nil listener/event")
 				continue
 			}
 			if n.Listener.MattermostCID == "" {
+				l.Debug("skipping notification without mattermost channel")
 				continue
 			}
+			l.Debug("sending mattermost notification",
+				zap.String("channel", n.Listener.MattermostCID),
+				zap.String("message", n.Message),
+			)
 			notifyWeather := cfg.Weather.Notify
 			body := map[string]any{
 				"channel_id": n.Listener.MattermostCID,
@@ -407,26 +433,29 @@ func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg 
 			}
 			if n.Listener.MattermostRID != "" {
 				body["root_id"] = n.Listener.MattermostRID
+				l.Debug("notification has root_id", zap.String("root_id", n.Listener.MattermostRID))
 			}
 			payload, err := json.Marshal(body)
 			if err != nil {
-				l.Error("failed to marshal mattermost post", zap.Error(err))
+				l.Error("failed to marshal mattermost post body", zap.Error(err))
 				continue
 			}
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, postURL, bytes.NewReader(payload))
 			if err != nil {
-				l.Error("failed to create mattermost request", zap.Error(err))
+				l.Error("failed to create mattermost HTTP request", zap.Error(err))
 				continue
 			}
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("Authorization", "Bearer "+cfg.Mattermost.BotToken)
 			resp, err := client.Do(req)
 			if err != nil {
-				l.Error("failed to send mattermost notification", zap.Error(err))
+				l.Error("failed to POST mattermost notification", zap.Error(err))
 				continue
 			}
+			l.Debug("mattermost notification posted", zap.Int("status", resp.StatusCode))
 			_ = resp.Body.Close()
 		case <-ctx.Done():
+			l.Debug("mattermost notification binder shutting down")
 			return
 		}
 	}
