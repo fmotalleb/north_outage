@@ -90,9 +90,10 @@ func buildMyListKeyboard(listeners []im.Listener) [][]models.InlineKeyboardButto
 	buttons := make([][]models.InlineKeyboardButton, 0, n+1)
 	for i := 0; i < n; i++ {
 		li := listeners[i]
-		// Button label via template
+		// Button label via template: show both city and search term
 		data := map[string]any{
-			"City": li.City,
+			"City":       li.City,
+			"SearchTerm": li.SearchTerm,
 		}
 		label, _ := template.EvaluateTemplate(message.RemoveBtn, data)
 		buttons = append(buttons, []models.InlineKeyboardButton{
