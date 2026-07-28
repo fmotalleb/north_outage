@@ -12,16 +12,22 @@ const STATUS_META = {
     label: 'در جریان',
     cls: 'bg-rose-500/15 text-rose-300 border-rose-400/30',
     dot: 'bg-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.8)] animate-pulse_soft',
+    panel: 'bg-rose-500/[0.06] border-rose-400/15 text-rose-300/80',
+    panelValue: 'text-rose-100',
   },
   upcoming: {
     label: 'پیش‌رو',
     cls: 'bg-orange-500/15 text-orange-300 border-orange-400/30',
     dot: 'bg-orange-400',
+    panel: 'bg-orange-500/[0.06] border-orange-400/15 text-orange-300/80',
+    panelValue: 'text-orange-100',
   },
   past: {
     label: 'پایان‌یافته',
     cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-400/30',
     dot: 'bg-cyan-400',
+    panel: 'bg-cyan-500/[0.06] border-cyan-400/15 text-cyan-300/80',
+    panelValue: 'text-cyan-100',
   },
 }
 
@@ -116,19 +122,18 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
 
         {/* 50/50 PANELS ALWAYS */}
         <div className="mt-auto pt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-400/15 px-3 py-2.5">
-            <div className="text-[11px] text-emerald-300/80 mb-0.5">شروع قطعی</div>
-            <div className="text-sm font-medium text-emerald-100">
+          <div className={`rounded-xl border ${meta.panel} px-3 py-2.5`}>
+            <div className="text-[11px] mb-0.5">شروع قطعی</div>
+            <div className={`text-sm font-medium ${meta.panelValue}`}>
               {formatDateTime(outage.start_at)}
             </div>
           </div>
 
-          <div className="rounded-xl bg-rose-500/[0.06] border border-rose-400/15 px-3 py-2.5">
-            <div className="text-[11px] text-rose-300/80 mb-0.5">پایان قطعی</div>
-            <div className="text-sm font-medium text-rose-100">
+          <div className={`rounded-xl border ${meta.panel} px-3 py-2.5`}>
+            <div className="text-[11px] mb-0.5">پایان قطعی</div>
+            <div className={`text-sm font-medium ${meta.panelValue}`}>
               {formatDateTime(outage.end_at)}
             </div>
-            {/* <div className="text-[11px] text-slate-400 mt-0.5">{refEnd}</div> */}
           </div>
         </div>
       </article>
