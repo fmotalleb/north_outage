@@ -20,8 +20,13 @@ func registerMyListHandlers(b *bot.Bot) {
 	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
 		return isCommand(update, "mylist") || isCommand(update, "list")
 	}, myList)
+	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
+		return isCommand(update, "clear")
+	}, clearAll)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "rm_listener:", bot.MatchTypePrefix, removeListener)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "close_list", bot.MatchTypeExact, closeList)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "confirm_clear", bot.MatchTypeExact, confirmClear)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "cancel_clear", bot.MatchTypeExact, cancelClear)
 }
 
 func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -180,6 +185,113 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		},
 	}
 	_, _ = b.EditMessageText(ctx, editParams)
+}
+
+func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.Message == nil {
+		return
+	}
+	chat := update.Message.Chat
+	chatID := chat.ID
+
+	l := log.Of(ctx).Named("clearAll")
+
+	db := database.Get()
+	var count int64
+	db.Model(&im.Listener{}).Where("telegram_cid = ?", chatID).Count(&count)
+
+	mp := helpers.MakeMessage(update)
+
+	if count == 0 {
+		mp.Text = "📭 شما هیچ آیتمی برای پاک کردن ندارید."
+		msg, err := b.SendMessage(ctx, mp)
+		if err != nil {
+			l.Error("failed to send empty clear", zap.Error(err))
+			return
+		}
+		l.Debug("sent empty clear", zap.Int("id", msg.ID))
+		return
+	}
+
+	mp.Text = fmt.Sprintf("⚠️ آیا مطمئن هستید که می‌خواهید هر %d آیتم مانیتور شده را حذف کنید؟", count)
+	mp.ReplyMarkup = &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         "✅ بله، همه را حذف کن",
+					CallbackData: "confirm_clear",
+				},
+			},
+			{
+				{
+					Text:         "❌ خیر، منصرف شدم",
+					CallbackData: "cancel_clear",
+				},
+			},
+		},
+	}
+
+	msg, err := b.SendMessage(ctx, mp)
+	if err != nil {
+		l.Error("failed to send clear confirmation", zap.Error(err))
+		return
+	}
+	l.Debug("sent clear confirmation", zap.Int("id", msg.ID))
+}
+
+func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.CallbackQuery == nil {
+		return
+	}
+	l := log.Of(ctx).Named("confirmClear")
+
+	chatID := update.CallbackQuery.Message.Message.Chat.ID
+
+	// Answer callback
+	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+		CallbackQueryID: update.CallbackQuery.ID,
+	})
+
+	db := database.Get()
+	result := db.Where("telegram_cid = ?", chatID).Delete(&im.Listener{})
+
+	msg := update.CallbackQuery.Message.Message
+
+	text := fmt.Sprintf("🗑️ <b>همه آیتم‌ها حذف شدند</b>\n\nتعداد: %d مورد", result.RowsAffected)
+
+	editParams := &bot.EditMessageTextParams{
+		ChatID:      msg.Chat.ID,
+		MessageID:   msg.ID,
+		Text:        text,
+		ParseMode:   models.ParseModeHTML,
+		ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: make([][]models.InlineKeyboardButton, 0)},
+	}
+	_, _ = b.EditMessageText(ctx, editParams)
+
+	l.Debug("cleared all listeners", zap.Int64("chat", chatID), zap.Int64("count", result.RowsAffected))
+}
+
+func cancelClear(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.CallbackQuery == nil {
+		return
+	}
+
+	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+		CallbackQueryID: update.CallbackQuery.ID,
+		Text:            "حذف لغو شد ✓",
+		ShowAlert:       true,
+	})
+
+	// Remove the keyboard
+	msg := update.CallbackQuery.Message.Message
+	if msg != nil {
+		editParams := &bot.EditMessageReplyMarkupParams{
+			ChatID:      msg.Chat.ID,
+			MessageID:   msg.ID,
+			ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: make([][]models.InlineKeyboardButton, 0)},
+		}
+		_, _ = b.EditMessageReplyMarkup(ctx, editParams)
+	}
 }
 
 func closeList(ctx context.Context, b *bot.Bot, update *models.Update) {
