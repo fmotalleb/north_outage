@@ -42,7 +42,7 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	db := database.Get()
 	var listeners []im.Listener
-	err := db.Where("telegram_cid = ?", chatID).Find(&listeners).Error
+	err := db.Where("telegram_c_id = ?", chatID).Find(&listeners).Error
 
 	mp := helpers.MakeMessage(update)
 
@@ -135,7 +135,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	// Delete the listener, scoped to this chat
 	db := database.Get()
-	result := db.Where("id = ? AND telegram_cid = ?", id, chatID).Delete(&im.Listener{})
+	result := db.Where("id = ? AND telegram_c_id = ?", id, chatID).Delete(&im.Listener{})
 	if result.RowsAffected == 0 {
 		l.Error("listener not found or not owned by this chat",
 			zap.Uint("id", id), zap.Int64("chat", chatID))
@@ -154,7 +154,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	// Refresh the list
 	var listeners []im.Listener
-	err = db.Where("telegram_cid = ?", chatID).Find(&listeners).Error
+	err = db.Where("telegram_c_id = ?", chatID).Find(&listeners).Error
 
 	msg := update.CallbackQuery.Message.Message
 
@@ -202,10 +202,10 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	editParams := &bot.EditMessageTextParams{
-		ChatID:      msg.Chat.ID,
-		MessageID:   msg.ID,
-		Text:        text,
-		ParseMode:   models.ParseModeHTML,
+		ChatID:    msg.Chat.ID,
+		MessageID: msg.ID,
+		Text:      text,
+		ParseMode: models.ParseModeHTML,
 		ReplyMarkup: &models.InlineKeyboardMarkup{
 			InlineKeyboard: buildMyListKeyboard(listeners),
 		},
@@ -224,7 +224,7 @@ func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	db := database.Get()
 	var count int64
-	db.Model(&im.Listener{}).Where("telegram_cid = ?", chatID).Count(&count)
+	db.Model(&im.Listener{}).Where("telegram_c_id = ?", chatID).Count(&count)
 
 	mp := helpers.MakeMessage(update)
 
@@ -288,7 +288,7 @@ func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	})
 
 	db := database.Get()
-	result := db.Where("telegram_cid = ?", chatID).Delete(&im.Listener{})
+	result := db.Where("telegram_c_id = ?", chatID).Delete(&im.Listener{})
 
 	msg := update.CallbackQuery.Message.Message
 
