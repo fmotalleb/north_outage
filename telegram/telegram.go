@@ -32,6 +32,13 @@ func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) err
 
 	hc := bot.WithHTTPClient(time.Second*30, client)
 	opts = append(opts, hc)
+	opts = append(opts, bot.WithAllowedUpdates([]string{
+		"message",
+		"edited_message",
+		"channel_post",
+		"edited_channel_post",
+		"callback_query",
+	}))
 
 	b, err := bot.New(tel.BotKey, opts...)
 	if err != nil {
