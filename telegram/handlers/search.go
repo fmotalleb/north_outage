@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/fmotalleb/go-tools/log"
 	"github.com/go-telegram/bot"
@@ -11,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/database"
-	"github.com/fmotalleb/north_outage/internal/template"
 	im "github.com/fmotalleb/north_outage/models"
 	"github.com/fmotalleb/north_outage/telegram/helpers"
 	"github.com/fmotalleb/north_outage/telegram/message"
@@ -120,16 +118,9 @@ func fetchEvents(search string) ([]im.Event, error) {
 	return out, err
 }
 
-// truncate trims a string to at most n runes, appending "…" if truncated.
-func truncate(s string, n int) string {
-	if utf8.RuneCountInString(s) <= n {
-		return s
-	}
-	return string([]rune(s)[:n]) + "…"
-}
-
 // buildBtns builds inline keyboard buttons for search results.
-// Each button shows the city and a short address snippet, deduplicated by city.
+// Each button has a simple "+ بهم خبر بده" label (the listener is created
+// using the search term, not the full address, so showing address was misleading).
 // A cancel button is appended at the bottom.
 func buildBtns(search string, events []im.Event) [][]models.InlineKeyboardButton {
 	buttons := make([][]models.InlineKeyboardButton, 0)
@@ -143,14 +134,8 @@ func buildBtns(search string, events []im.Event) [][]models.InlineKeyboardButton
 		}
 		seen[ev.City] = struct{}{}
 
-		// Button label via template: city + truncated address
-		data := map[string]any{
-			"City":    ev.City,
-			"Address": truncate(ev.Address, 20),
-		}
-		label, _ := template.EvaluateTemplate(message.SearchBtn, data)
 		btn := models.InlineKeyboardButton{
-			Text:         label,
+			Text:         "➕ بهم خبر بده",
 			CallbackData: "listen:" + createRequest(search, ev.City),
 		}
 		buttons = append(buttons, []models.InlineKeyboardButton{btn})

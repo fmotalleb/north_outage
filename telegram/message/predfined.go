@@ -25,7 +25,6 @@ var (
 	ClearDone        = readOrPanic("clear_done")
 	Notification     = readOrPanic("notification")
 	MMNotification   = readOrPanic("mm_notification")
-	SearchBtn        = readOrPanic("search_btn")
 	RemoveBtn        = readOrPanic("remove_btn")
 	WeatherLine      = readOrPanic("weather")
 )
