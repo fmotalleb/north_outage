@@ -8,6 +8,8 @@ import (
 
 	"github.com/fmotalleb/go-scheduler"
 	"github.com/fmotalleb/go-scheduler/worker"
+	"github.com/fmotalleb/go-tools/log"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 
 	"github.com/fmotalleb/north_outage/config"
@@ -109,55 +111,62 @@ func (n *NotificationStorage) PopBefore(deadline time.Time) ([]models.Notificati
 // across the application.
 func (n *NotificationStorage) Close() {}
 
-func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event) <-chan models.Notification {
-	notifications := make(chan models.Notification, eventsChannelBufferSize)
+func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event, notifications chan models.Notification) {
+	l := log.Of(ctx).Named("NotificationTransformer")
 	cfg, _ := config.Get(ctx)
-
-	sc := scheduler.New(
-		ctx,
-		worker.NewWorkerPool(ctx, func(ctx context.Context, n models.Notification) {
+	worker := worker.NewWorkerPool(
+		context.WithoutCancel(ctx),
+		func(ctx context.Context, n models.Notification) {
 			select {
 			case <-ctx.Done():
 			case notifications <- n:
 			}
-		}, 4, 100),
-		scheduler.WithStorage[models.Notification](
-			&NotificationStorage{
-				db,
-			}),
-		scheduler.WithTickerCycle[models.Notification](time.Minute),
+		},
+		4,
+		100,
 	)
-	defer sc.Close()
+	storage := scheduler.WithStorage(
+		&NotificationStorage{
+			db,
+		},
+	)
+	sc := scheduler.New(
+		ctx,
+		worker,
+		storage,
+		scheduler.WithTickerCycle[models.Notification](time.Second),
+		scheduler.WithLogger[models.Notification](func(err error) {
+			l.Error("scheduler error", zap.Error(err))
+		}),
+	)
 
 	db = db.Table("listeners")
-	go func() {
-		for {
-			select {
-			case ev := <-events:
-				for _, l := range getListeners(db) {
-					if ev.City != l.City {
-						continue
-					}
-					if strings.Contains(ev.Address, l.SearchTerm) {
-						notifications <- models.Notification{
-							Listener: &l,
-							Event:    &ev,
-							Message:  "دیتای جدید",
-						}
-						sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
-							Listener: &l,
-							Event:    &ev,
-							Message:  "به زودی",
-						})
-					}
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
 
-	return notifications
+	defer sc.Close()
+	for {
+		select {
+		case ev := <-events:
+			for _, l := range getListeners(db) {
+				if ev.City != l.City {
+					continue
+				}
+				if strings.Contains(ev.Address, l.SearchTerm) {
+					notifications <- models.Notification{
+						Listener: &l,
+						Event:    &ev,
+						Message:  "دیتای جدید",
+					}
+					sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
+						Listener: &l,
+						Event:    &ev,
+						Message:  "به زودی",
+					})
+				}
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 var (

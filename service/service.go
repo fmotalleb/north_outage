@@ -57,8 +57,9 @@ func Serve(ctx context.Context) error {
 
 	wg.Go(
 		func() error {
-			ch := eventToNotificationTransformer(ctx, db, ec)
-			bc.BindTo(ch)
+			notifications := make(chan models.Notification, eventsChannelBufferSize)
+			go eventToNotificationTransformer(ctx, db, ec, notifications)
+			bc.BindTo(notifications)
 			return nil
 		},
 	)
@@ -100,6 +101,9 @@ func Serve(ctx context.Context) error {
 			},
 		)
 	}
-
+	select {
+	case <-ctx.Done():
+		l.Error("context canceled", zap.Error(ctx.Err()))
+	}
 	return wg.Wait()
 }
