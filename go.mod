@@ -10,8 +10,8 @@ tool (
 
 require (
 	github.com/fmotalleb/go-jalali v1.1.0
-	github.com/fmotalleb/go-scheduler v0.2.0
-	github.com/fmotalleb/go-tools v0.1.79
+	github.com/fmotalleb/go-scheduler v0.2.2
+	github.com/fmotalleb/go-tools v0.1.80
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-telegram/bot v1.22.0
 	github.com/google/uuid v1.6.0
@@ -23,7 +23,7 @@ require (
 	go.uber.org/zap v1.28.0
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
-	gorm.io/driver/postgres v1.6.0
+	gorm.io/driver/postgres v1.6.2
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
 )
@@ -237,7 +237,7 @@ require (
 	github.com/ipfs/go-metrics-interface v0.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.9.2 // indirect
+	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jbenet/goprocess v0.1.4 // indirect

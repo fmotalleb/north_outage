@@ -112,7 +112,7 @@ func (n *NotificationStorage) PopBefore(deadline time.Time) ([]models.Notificati
 func (n *NotificationStorage) Close() {}
 
 func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event, notifications chan models.Notification) {
-	l := log.Of(ctx).Named("NotificationTransformer")
+	ctx, l := log.AsNamedChild(ctx, "NotificationTransformer")
 	cfg, _ := config.Get(ctx)
 	worker := worker.NewWorkerPool(
 		context.WithoutCancel(ctx),
