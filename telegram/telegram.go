@@ -18,8 +18,7 @@ import (
 )
 
 func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) error {
-	l := log.Of(ctx).Named("Telegram")
-	ctx = log.WithLogger(ctx, l)
+	ctx, l := log.AsNamedChild(ctx, "Telegram")
 	tel := cfg.Telegram
 	if tel.BotKey == "" {
 		l.Warn("telegram bot token is not set")
@@ -54,11 +53,15 @@ func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) err
 }
 
 func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
-	l := log.Of(ctx).Named("binder")
+	ctx, l := log.AsNamedChild(ctx, "binder")
 	l.Debug("notification binder started")
 	for {
 		select {
-		case n := <-nc:
+		case n, ok := <-nc:
+			if !ok {
+				l.Debug("notification binder shutting down")
+				return
+			}
 			l.Debug("notification received from channel",
 				zap.String("message", n.Message),
 				zap.Int64("chat_id", n.Listener.TelegramCID),
@@ -84,7 +87,7 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 }
 
 func formatNotification(ctx context.Context, msg string, ev *im.Event, notifyWeather bool) string {
-	l := log.FromContext(ctx).Named("formatNotification")
+	ctx, l := log.AsNamedChild(ctx, "formatNotification")
 	data := map[string]any{
 		"message": msg,
 		"event":   ev,

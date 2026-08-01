@@ -384,6 +384,7 @@ func toString(v any) string {
 }
 
 func formatMMNotification(ctx context.Context, ev *nmodels.Event, notifyWeather bool) string {
+	ctx, l := log.AsNamedChild(ctx, "formatMMNotification")
 	data := map[string]any{
 		"event": ev,
 	}
@@ -396,14 +397,14 @@ func formatMMNotification(ctx context.Context, ev *nmodels.Event, notifyWeather 
 
 	out, err := template.EvaluateTemplate(message.MMNotification, data)
 	if err != nil {
-		log.FromContext(ctx).Named("formatMMNotification").
-			Error("failed to evaluate mattermost notification template", zap.Error(err))
+		l.Error("failed to evaluate mattermost notification template", zap.Error(err))
 		return ""
 	}
 	return out
 }
 
 func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg *config.Config, nc <-chan nmodels.Notification) {
+	ctx, l = log.AsNamedChild(ctx, "MattermostBinder")
 	base := apiBase()
 	if base == nil {
 		l.Warn("mattermost server url is not configured")
@@ -413,7 +414,11 @@ func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg 
 	l.Debug("mattermost notification binder started")
 	for {
 		select {
-		case n := <-nc:
+		case n, ok := <-nc:
+			if !ok {
+				l.Debug("mattermost notification binder shutting down")
+				return
+			}
 			if n.Listener == nil || n.Event == nil {
 				l.Debug("skipping notification with nil listener/event")
 				continue

@@ -18,7 +18,7 @@ import (
 // CollectAndStore runs the collector, deduplicates results, persists new
 // events, and runs garbage collection on expired events.
 func CollectAndStore(ctx context.Context, cfg *config.Config) ([]models.Event, error) {
-	logger := log.FromContext(ctx).Named("CollectorCycle")
+	ctx, logger := log.AsNamedChild(ctx, "CollectorCycle")
 	ctx, cancel := context.WithTimeout(ctx, cfg.CollectTimeout)
 	defer cancel()
 

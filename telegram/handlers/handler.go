@@ -8,7 +8,7 @@ import (
 )
 
 func SetupHandlers(ctx context.Context, b *bot.Bot) {
-	l := log.Of(ctx).Named("SetupHandlers")
+	ctx, l := log.AsNamedChild(ctx, "SetupHandlers")
 	l.Debug("registering telegram handlers")
 	registerHelpHandlers(b)
 	registerSearchHandlers(b)

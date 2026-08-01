@@ -42,8 +42,9 @@ func search(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	chat := update.Message.Chat
-	ctx = log.WithLogger(ctx, log.Of(ctx).Named("search").With(zap.Any("chat", chat)))
-	l := log.Of(ctx)
+	ctx, l := log.AsNamedChild(ctx, "search")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 
 	query := commandArgument(update.Message.Text, searchCommand)
 	if query == "" {
@@ -72,15 +73,16 @@ func searchByText(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	chat := update.Message.Chat
-	ctx = log.WithLogger(ctx, log.Of(ctx).Named("searchByText").With(zap.Any("chat", chat)))
-	l := log.Of(ctx)
+	ctx, l := log.AsNamedChild(ctx, "searchByText")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 	l.Debug("treating plain text as search", zap.String("query", query))
 	handleSearch(ctx, b, update, query)
 }
 
 // handleSearch is the shared search logic used by both /search and plain text.
 func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query string) {
-	l := log.Of(ctx)
+	ctx, l := log.AsNamedChild(ctx, "handleSearch")
 	l.Debug("fetching events matching query", zap.String("query", query))
 	events, err := fetchEvents(query)
 	if err != nil {

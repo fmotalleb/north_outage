@@ -24,7 +24,7 @@ const (
 )
 
 func Serve(ctx context.Context) error {
-	l := log.FromContext(ctx).Named("Serve")
+	ctx, l := log.AsNamedChild(ctx, "Serve")
 	cfg, err := config.Get(ctx)
 	if err != nil {
 		return err
@@ -41,69 +41,83 @@ func Serve(ctx context.Context) error {
 	weather.Init(cfg.Weather.Proxy)
 	mattermost.Setup(ctx, cfg)
 	ec := make(chan models.Event, eventsChannelBufferSize)
-	wg, ctx := errgroup.WithContext(ctx)
-	wg.Go(
-		func() error {
-			err := web.Start(ctx, cfg)
-			if err != nil {
-				l.Error("api server collapsed", zap.Error(err))
-				return fmt.Errorf("api server unrecoverable exception: %w", err)
+
+	// The shared context passed to every service is the signal-derived
+	// context created at the entry point. No service derives a cancellable
+	// context of its own, so a failing service can never cancel the context
+	// used by the others. Fatal service errors are reported through errCh
+	// and exit the process, but they never cancel the shared context.
+	wg := new(errgroup.Group)
+	errCh := make(chan error, 1)
+	run := func(fn func() error) {
+		wg.Go(func() error {
+			if err := fn(); err != nil {
+				select {
+				case errCh <- err:
+				default:
+				}
+				return err
 			}
 			return nil
-		},
-	)
+		})
+	}
+
+	run(func() error {
+		err := web.Start(ctx, cfg)
+		if err != nil {
+			l.Error("api server collapsed", zap.Error(err))
+			return fmt.Errorf("api server unrecoverable exception: %w", err)
+		}
+		return nil
+	})
 
 	bc := broadcast.NewBroadcaster[models.Notification](l)
 
-	wg.Go(
-		func() error {
-			notifications := make(chan models.Notification, eventsChannelBufferSize)
-			go eventToNotificationTransformer(ctx, db, ec, notifications)
-			bc.BindTo(notifications)
-			return nil
-		},
-	)
+	run(func() error {
+		notifications := make(chan models.Notification, eventsChannelBufferSize)
+		go eventToNotificationTransformer(ctx, db, ec, notifications)
+		bc.BindTo(notifications)
+		return nil
+	})
 
-	wg.Go(
-		func() error {
-			err := startCollector(ctx, cfg, ec)
-			if err != nil {
-				l.Error("scheduler service collapsed", zap.Error(err))
-				return fmt.Errorf("scheduler service unrecoverable exception: %w", err)
-			}
-			return nil
-		},
-	)
+	run(func() error {
+		err := startCollector(ctx, cfg, ec)
+		if err != nil {
+			l.Error("scheduler service collapsed", zap.Error(err))
+			return fmt.Errorf("scheduler service unrecoverable exception: %w", err)
+		}
+		return nil
+	})
 
 	if cfg.Telegram.BotKey != "" {
-		wg.Go(
-			func() error {
-				_, ch := bc.Subscribe(notificationBufferSize)
-				err := telegram.Run(ctx, cfg, ch)
-				if err != nil {
-					l.Error("telegram service collapsed", zap.Error(err))
-					return fmt.Errorf("telegram service unrecoverable exception: %w", err)
-				}
-				return nil
-			},
-		)
+		run(func() error {
+			_, ch := bc.Subscribe(notificationBufferSize)
+			err := telegram.Run(ctx, cfg, ch)
+			if err != nil {
+				l.Error("telegram service collapsed", zap.Error(err))
+				return fmt.Errorf("telegram service unrecoverable exception: %w", err)
+			}
+			return nil
+		})
 	}
 	if cfg.Mattermost.BotToken != "" && cfg.Mattermost.ServerURL != "" {
-		wg.Go(
-			func() error {
-				_, ch := bc.Subscribe(notificationBufferSize)
-				err := mattermost.Run(ctx, cfg, ch)
-				if err != nil {
-					l.Error("mattermost service collapsed", zap.Error(err))
-					return fmt.Errorf("mattermost service unrecoverable exception: %w", err)
-				}
-				return nil
-			},
-		)
+		run(func() error {
+			_, ch := bc.Subscribe(notificationBufferSize)
+			err := mattermost.Run(ctx, cfg, ch)
+			if err != nil {
+				l.Error("mattermost service collapsed", zap.Error(err))
+				return fmt.Errorf("mattermost service unrecoverable exception: %w", err)
+			}
+			return nil
+		})
 	}
+
 	select {
 	case <-ctx.Done():
-		l.Error("context canceled", zap.Error(ctx.Err()))
+		l.Info("received shutdown signal")
+		return wg.Wait()
+	case err := <-errCh:
+		l.Error("a service collapsed, shutting down", zap.Error(err))
+		return err
 	}
-	return wg.Wait()
 }

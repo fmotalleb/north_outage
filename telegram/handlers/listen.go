@@ -37,8 +37,9 @@ func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	chat := update.CallbackQuery.Message.Message.Chat
-	ctx = log.WithLogger(ctx, log.Of(ctx).Named("listen").With(zap.Any("chat", chat)))
-	l := log.Of(ctx)
+	ctx, l := log.AsNamedChild(ctx, "listen")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 
 	if update.CallbackQuery.Message.Message == nil {
 		l.Error("callback query message missing")
@@ -109,7 +110,9 @@ func cancelListen(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	chat := update.CallbackQuery.Message.Message.Chat
-	l := log.Of(ctx).Named("cancelListen").With(zap.Any("chat", chat))
+	ctx, l := log.AsNamedChild(ctx, "cancelListen")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 	l.Debug("user cancelled search")
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{

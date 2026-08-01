@@ -26,9 +26,9 @@ func help(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	chat := update.Message.Chat
-	l := log.Of(ctx).
-		Named("help").
-		With(zap.Any("chat", chat))
+	ctx, l := log.AsNamedChild(ctx, "help")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 	mp := helpers.MakeMessage(update)
 	out, err := message.EvaluateMessageTemplate(message.Help, nil, update)
 	if err != nil {

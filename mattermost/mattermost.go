@@ -20,9 +20,9 @@ func Setup(ctx context.Context, cfg *config.Config) {
 	registerRoutes(ctx, cfg)
 }
 
+
 func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) error {
-	l := log.Of(ctx).Named("Mattermost")
-	ctx = log.WithLogger(ctx, l)
+	ctx, l := log.AsNamedChild(ctx, "Mattermost")
 	if cfg.Mattermost.BotToken == "" || cfg.Mattermost.ServerURL == "" {
 		l.Warn("mattermost bot token or server url is not set")
 		return nil

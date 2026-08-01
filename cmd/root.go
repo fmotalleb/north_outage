@@ -19,6 +19,8 @@ package cmd
 import (
 	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/fmotalleb/go-tools/git"
 	"github.com/fmotalleb/go-tools/log"
@@ -43,12 +45,18 @@ var rootCmd = &cobra.Command{
 	},
 
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		ctx := context.Background()
-		// ctx = (ctx, os.Interrupt, os.Kill)
+		// The shared context is created here, at the entry point of the app,
+		// and has exactly one cancellation source: the OS signal handler
+		// below. Nothing else in the application may cancel it, so a single
+		// failing service can never tear down the context of every other
+		// user/service.
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
 		var err error
 		if ctx, err = log.WithNewEnvLogger(ctx); err != nil {
 			return err
 		}
+		ctx, _ = log.AsNamedChild(ctx, "Main")
 		var cfg *config.Config
 		var cfgPath string
 		if cfgPath, err = cmd.Flags().GetString("config"); err != nil {

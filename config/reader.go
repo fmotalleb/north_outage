@@ -8,9 +8,11 @@ import (
 	parser "github.com/fmotalleb/go-tools/config"
 	"github.com/fmotalleb/go-tools/decoder"
 	"github.com/fmotalleb/go-tools/defaulter"
+	"github.com/fmotalleb/go-tools/log"
 )
 
 func ReadConfig(ctx context.Context, conf string) (*Config, error) {
+	ctx, _ = log.AsNamedChild(ctx, "Config")
 	cfg := &Config{}
 	var err error
 	var raw map[string]any

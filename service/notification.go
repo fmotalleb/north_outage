@@ -142,6 +142,10 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 
 	db = db.Table("listeners")
 
+	// Close the notifications channel only after sc.Close has drained the
+	// worker pool, otherwise a worker could send on a closed channel.
+	// Registered first so it runs last (defers run LIFO).
+	defer close(notifications)
 	defer sc.Close()
 	for {
 		select {
@@ -151,10 +155,14 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 					continue
 				}
 				if strings.Contains(ev.Address, l.SearchTerm) {
-					notifications <- models.Notification{
-						Listener: &l,
-						Event:    &ev,
-						Message:  "دیتای جدید",
+					select {
+					case <-ctx.Done():
+						return
+					case notifications <- models.Notification{
+							Listener: &l,
+							Event:    &ev,
+							Message:  "دیتای جدید",
+						}:
 					}
 					sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
 						Listener: &l,

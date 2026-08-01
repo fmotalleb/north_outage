@@ -23,9 +23,9 @@ func version(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	chat := update.Message.Chat
-	l := log.Of(ctx).
-		Named("version").
-		With(zap.Any("chat", chat))
+	ctx, l := log.AsNamedChild(ctx, "version")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 	mp := helpers.MakeMessage(update)
 
 	mp.Text = git.String()

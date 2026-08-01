@@ -65,7 +65,7 @@ var defaultCityMap = map[int]string{
 const defaultBodyTemplate = `{"fromDate":"{{ now | jFormat "2006/01/02" | fanum }}","toDate":"{{ now | dateModify "24h" | jFormat "2006/01/02" | fanum }}","city":-1,"pgds":""}`
 
 func fetchData(ctx context.Context) ([]models.Event, error) {
-	logger := log.Of(ctx)
+	ctx, logger := log.AsNamedChild(ctx, "fetchData")
 	cfg, err := config.Get(ctx)
 	if err != nil {
 		logger.Error("failed to fetch config from context", zap.Error(err))

@@ -37,8 +37,9 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	chat := update.Message.Chat
 	chatID := chat.ID
-	ctx = log.WithLogger(ctx, log.Of(ctx).Named("myList").With(zap.Any("chat", chat)))
-	l := log.Of(ctx)
+	ctx, l := log.AsNamedChild(ctx, "myList")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 
 	l.Debug("querying listeners from db", zap.Int64("chat_id", chatID))
 	db := database.Get()
@@ -123,8 +124,9 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	chat := update.CallbackQuery.Message.Message.Chat
-	ctx = log.WithLogger(ctx, log.Of(ctx).Named("removeListener").With(zap.Any("chat", chat)))
-	l := log.Of(ctx)
+	ctx, l := log.AsNamedChild(ctx, "removeListener")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 
 	// Parse the listener ID
 	var id uint
@@ -233,8 +235,9 @@ func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	chat := update.Message.Chat
 	chatID := chat.ID
-	ctx = log.WithLogger(ctx, log.Of(ctx).Named("clearAll").With(zap.Any("chat", chat)))
-	l := log.Of(ctx)
+	ctx, l := log.AsNamedChild(ctx, "clearAll")
+	l = l.With(zap.Any("chat", chat))
+	ctx = log.WithLogger(ctx, l)
 
 	db := database.Get()
 	var count int64
@@ -295,7 +298,9 @@ func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
-	l := log.Of(ctx).Named("confirmClear").With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	ctx, l := log.AsNamedChild(ctx, "confirmClear")
+	l = l.With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	ctx = log.WithLogger(ctx, l)
 	l.Debug("user confirmed clear-all")
 
 	chatID := update.CallbackQuery.Message.Message.Chat.ID
@@ -336,7 +341,9 @@ func cancelClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
-	l := log.Of(ctx).Named("cancelClear").With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	ctx, l := log.AsNamedChild(ctx, "cancelClear")
+	l = l.With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	ctx = log.WithLogger(ctx, l)
 	l.Debug("user cancelled clear-all")
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
@@ -362,7 +369,9 @@ func closeList(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
-	l := log.Of(ctx).Named("closeList").With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	ctx, l := log.AsNamedChild(ctx, "closeList")
+	l = l.With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
+	ctx = log.WithLogger(ctx, l)
 	l.Debug("user closed list")
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{

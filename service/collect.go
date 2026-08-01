@@ -17,7 +17,7 @@ import (
 
 // startCollector schedules and runs the periodic event collection job.
 func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Event) error {
-	logger := log.FromContext(ctx).Named("CollectorScheduler")
+	ctx, logger := log.AsNamedChild(ctx, "CollectorScheduler")
 
 	parser := cron.NewParser(cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 	schedule, err := parser.Parse(cfg.CollectCycle)
@@ -62,7 +62,7 @@ func startCollector(ctx context.Context, cfg *config.Config, ec chan models.Even
 
 // makeCollectFunc wraps collector.CollectAndStore in a cron-compatible function.
 func makeCollectFunc(ctx context.Context, cfg *config.Config, ec chan models.Event) func() {
-	logger := log.FromContext(ctx).Named("CollectorJob")
+	ctx, logger := log.AsNamedChild(ctx, "CollectorJob")
 	return func() {
 		logger.Debug("collector cycle started")
 		if events, err := collector.CollectAndStore(ctx, cfg); err != nil {

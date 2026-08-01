@@ -10,8 +10,7 @@ import (
 )
 
 func Collect(ctx context.Context) ([]models.Event, error) {
-	l := log.FromContext(ctx).Named("collector")
-	ctx = log.WithLogger(ctx, l)
+	ctx, l := log.AsNamedChild(ctx, "collector")
 	l.Info("starting to collect")
 	events, err := fetchData(ctx)
 	if err != nil {
