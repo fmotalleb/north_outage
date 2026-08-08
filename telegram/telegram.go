@@ -73,6 +73,7 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 			sp := new(bot.SendMessageParams)
 			sp.ChatID = n.Listener.TelegramCID
 			sp.MessageThreadID = int(n.Listener.TelegramTID)
+			sp.ParseMode = tgmodels.ParseModeHTML
 			cfg, err := config.Get(ctx)
 			notifyWeather := err == nil && cfg.Weather.Notify
 			sp.Text = formatNotification(ctx, n.Message, n.Event, notifyWeather)
