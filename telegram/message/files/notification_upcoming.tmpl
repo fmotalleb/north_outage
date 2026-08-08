@@ -1,8 +1,9 @@
-⏳ <b>به زودی:</b>
-🏙 {{ .event.City }}
-📍 {{ .event.Address }}
-🗓 {{ .event.Start | relDate }} - {{ .event.Start | jFormat "2006/01/02" }} 
-⏰ {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | fanum }} — {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | fanum }}
+🔔 <b>یادآوری قطعی برق:</b>
+تا شروع قطعی <b>{{ .event.Start | reltime }}</b> مونده.
+🏙️ شهر: {{ .event.City }}
+📍 آدرس: {{ .event.Address }}
+🗓️ روز: {{ .event.Start | relDate }}
+⏰ ساعت: {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | fanum }} تا {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | fanum }}
 {{- if .weather }}
-🌤{{ .weather }}
+🌤️ وضعیت هوا: {{ .weather }}
 {{- end }}

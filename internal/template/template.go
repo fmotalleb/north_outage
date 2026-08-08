@@ -14,6 +14,7 @@ var funcs = map[string]any{
 	"jFormat":  jFormat,
 	"fanum":    faNum,
 	"relDate":  relativeDate,
+	"reltime":  relTime,
 	"add":      add,
 }
 
@@ -64,6 +65,39 @@ func faNum(in any) string {
 
 func add(a, b int) int {
 	return a + b
+}
+
+// relTime returns a short, natural Persian duration relative to now,
+// e.g. "۱۵ دقیقه دیگه", "۳ ساعت پیش", "لحظاتی دیگه".
+func relTime(t time.Time) string {
+	diff := t.Sub(time.Now())
+	future := diff >= 0
+	if !future {
+		diff = -diff
+	}
+
+	var n int64
+	var unit string
+	switch {
+	case diff < time.Minute:
+		if future {
+			return "لحظاتی دیگه"
+		}
+		return "لحظاتی پیش"
+	case diff < time.Hour:
+		n = int64(diff / time.Minute)
+		unit = "دقیقه"
+	case diff < 24*time.Hour:
+		n = int64(diff / time.Hour)
+		unit = "ساعت"
+	default:
+		n = int64(diff / (24 * time.Hour))
+		unit = "روز"
+	}
+	if future {
+		return faNum(n) + " " + unit + " دیگه"
+	}
+	return faNum(n) + " " + unit + " پیش"
 }
 
 func relativeDate(t time.Time) string {

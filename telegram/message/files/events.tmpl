@@ -1,11 +1,11 @@
-📡 <b>رویدادهای فعال و پیش‌رو شما</b>:
+📡 <b>قطعـی‌های فعال و پیشِ‌رو برای مانیتورهایت:</b>
 {{- if not .events }}
-هیچ رویدادی یافت نشد.
+هنوز قطعی‌ای پیدا نشده. 😌
 {{- else }}
 {{- range $e := .events }}
 ---
-🗓 <b>{{ $e.Start | relDate }}</b> {{ $e.Start | jFormat "Monday 2006/01/02 January" | fanum }}
-⏰ <b>{{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | fanum }}</b> تا <b>{{ $e.EndClock }}{{ $e.End | jFormat "15:04" | fanum }}</b>
-🏠 <b>{{ $e.City }}</b> - {{ $e.Address }}
+🏙️ <b>{{ $e.City }}</b> — {{ $e.Address }}
+🗓️ {{ $e.Start | relDate }}، {{ $e.Start | jFormat "2006/01/02" | fanum }}
+⏰ از {{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | fanum }} تا {{ $e.EndClock }}{{ $e.End | jFormat "15:04" | fanum }}
 {{- end }}
 {{- end }}

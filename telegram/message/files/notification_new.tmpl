@@ -1,8 +1,8 @@
-✅ <b>دیتای جدید:</b>
-🏙 {{ .event.City }}
-📍 {{ .event.Address }}
-🗓 {{ .event.Start | relDate }} - {{ .event.Start | jFormat "2006/01/02" }} 
-⏰ {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | fanum }} — {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | fanum }}
+🛎️ <b>قطعـی برق جدیدی اطراف خونت پیدا شد:</b>
+🏙️ شهر: {{ .event.City }}
+📍 آدرس: {{ .event.Address }}
+🗓️ روز: {{ .event.Start | relDate }}
+⏰ ساعت: {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | fanum }} تا {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | fanum }}
 {{- if .weather }}
-🌤{{ .weather }}
+🌤️ وضعیت هوا: {{ .weather }}
 {{- end }}
