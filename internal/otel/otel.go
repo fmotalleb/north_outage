@@ -22,6 +22,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/fmotalleb/north_outage/config"
@@ -51,12 +52,15 @@ func Init(ctx context.Context, cfg config.Tracing) (shutdown func(context.Contex
 	if u.Host == "" {
 		return nil, fmt.Errorf("invalid tracing url %q: missing host", cfg.URL)
 	}
-
 	res := resource.Default()
-	// if err != nil {
-	// 	return nil, err
-	// }
 
+	res, err = resource.Merge(resource.Default(), resource.NewWithAttributes(
+		res.SchemaURL(),
+		semconv.ServiceName("north_outage"),
+	))
+	if err != nil {
+		return nil, err
+	}
 	// The exporters only need a short-lived context to connect; never derive
 	// a cancellable child of the app's shared context here.
 	initCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
