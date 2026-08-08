@@ -124,7 +124,7 @@ func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query 
 	}
 	l.Debug("search results sent", zap.Int("msg_id", msg.ID), zap.Int("result_count", len(events)))
 	if len(events) > 0 {
-		autodelete.Schedule(ctx, b, msg.Chat.ID, msg.ID)
+		autodelete.Schedule(ctx, b, msg.Chat.ID, msg.ID, update.Message.ID)
 	}
 }
 

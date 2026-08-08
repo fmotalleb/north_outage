@@ -30,26 +30,33 @@ func Init(ctx context.Context) {
 	sched = scheduler.NewCallback(ctx)
 }
 
-// Schedule deletes the given message after the configured TTL.
-func Schedule(ctx context.Context, b *bot.Bot, chatID int64, messageID int) {
+// Schedule deletes the given message (and, if provided, the user message
+// that triggered it) after the configured TTL.
+func Schedule(ctx context.Context, b *bot.Bot, chatID int64, messageID, userMessageID int) {
 	if sched == nil || b == nil || chatID == 0 || messageID == 0 {
 		return
+	}
+	ids := []int{messageID}
+	if userMessageID != 0 && userMessageID != messageID {
+		ids = append(ids, userMessageID)
 	}
 	ttl := defaultTTL
 	if cfg, err := config.Get(ctx); err == nil && cfg.Telegram.MessageTTL > 0 {
 		ttl = cfg.Telegram.MessageTTL
 	}
 	if _, err := sched.Add(time.Now().Add(ttl), func(ctx context.Context) {
-		if _, err := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-			ChatID:    chatID,
-			MessageID: messageID,
-		}); err != nil {
-			_, l := log.AsNamedChild(ctx, "AutoDelete")
-			l.Debug("failed to delete stale message",
-				zap.Int64("chat_id", chatID),
-				zap.Int("message_id", messageID),
-				zap.Error(err),
-			)
+		for _, id := range ids {
+			if _, err := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+				ChatID:    chatID,
+				MessageID: id,
+			}); err != nil {
+				_, l := log.AsNamedChild(ctx, "AutoDelete")
+				l.Debug("failed to delete stale message",
+					zap.Int64("chat_id", chatID),
+					zap.Int("message_id", id),
+					zap.Error(err),
+				)
+			}
 		}
 	}); err != nil {
 		_, l := log.AsNamedChild(ctx, "AutoDelete")

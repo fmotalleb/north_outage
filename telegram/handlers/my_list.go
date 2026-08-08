@@ -87,7 +87,7 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	l.Debug("mylist sent", zap.Int("msg_id", msg.ID), zap.Int("listener_count", len(listeners)))
 	if mp.ReplyMarkup != nil {
-		autodelete.Schedule(ctx, b, chatID, msg.ID)
+		autodelete.Schedule(ctx, b, chatID, msg.ID, update.Message.ID)
 	}
 }
 
@@ -297,7 +297,7 @@ func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	l.Debug("clear confirmation sent", zap.Int("msg_id", msg.ID))
 	if mp.ReplyMarkup != nil {
-		autodelete.Schedule(ctx, b, chatID, msg.ID)
+		autodelete.Schedule(ctx, b, chatID, msg.ID, update.Message.ID)
 	}
 }
 

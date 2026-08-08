@@ -84,5 +84,5 @@ func events(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	l.Debug("events sent", zap.Int("msg_id", msg.ID), zap.Int("event_count", len(evs)))
-	autodelete.Schedule(ctx, b, chatID, msg.ID)
+	autodelete.Schedule(ctx, b, chatID, msg.ID, update.Message.ID)
 }

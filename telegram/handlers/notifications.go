@@ -90,7 +90,7 @@ func notifications(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	l.Debug("notifications sent", zap.Int("msg_id", msg.ID), zap.Int("notification_count", len(rows)))
 	if mp.ReplyMarkup != nil {
-		autodelete.Schedule(ctx, b, chatID, msg.ID)
+		autodelete.Schedule(ctx, b, chatID, msg.ID, update.Message.ID)
 	}
 }
 
