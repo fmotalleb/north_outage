@@ -107,6 +107,13 @@ func (n *NotificationStorage) PopBefore(deadline time.Time) ([]models.Notificati
 	return result, nil
 }
 
+// DeleteBefore removes all stored notifications scheduled strictly before
+// the given time. Used once at boot to forget notifications whose send time
+// elapsed while the service was down.
+func (n *NotificationStorage) DeleteBefore(deadline time.Time) error {
+	return n.db.Where("scheduled_at < ?", deadline).Delete(&models.ScheduledNotification{}).Error
+}
+
 // Close is a no-op — the GORM connection is managed externally and reused
 // across the application.
 func (n *NotificationStorage) Close() {}
@@ -125,11 +132,15 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 		4,
 		100,
 	)
-	storage := scheduler.WithStorage(
-		&NotificationStorage{
-			db,
-		},
-	)
+	ns := &NotificationStorage{
+		db,
+	}
+	// Forget scheduled notifications whose send time passed while the
+	// service was down, so the scheduler does not fire them on startup.
+	if err := ns.DeleteBefore(time.Now()); err != nil {
+		l.Error("failed to purge expired scheduled notifications", zap.Error(err))
+	}
+	storage := scheduler.WithStorage(ns)
 	sc := scheduler.New(
 		ctx,
 		worker,
