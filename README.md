@@ -161,6 +161,28 @@ Mattermost request flow:
 - Button clicks create a listener for the selected city and search string.
 - Notifications are posted back to the originating Mattermost channel.
 
+### Tracing Config
+
+OpenTelemetry tracing is enabled when `tracing.url` (or `TRACING_URL`) is set.
+Leave it empty to disable tracing entirely.
+
+| File key | Env var | Purpose | Example |
+| --- | --- | --- | --- |
+| `tracing.url` | `TRACING_URL` | OTLP collector endpoint. The URL scheme selects the protocol and transport security; empty disables tracing. | `http://localhost:4318` |
+| `tracing.rate` | `TRACING_RATE` | Sampling ratio (0..1) applied to web API and Telegram interactions. | `1` |
+
+The URL scheme decides how traces are exported:
+
+- `http://` → OTLP over HTTP, plaintext
+- `https://` → OTLP over HTTP, TLS
+- `grpc://` → OTLP over gRPC, insecure
+- `grpcs://` → OTLP over gRPC, TLS
+
+Notes:
+
+- Collector traces are always exported regardless of `tracing.rate`.
+- `tracing.rate` only affects web API and Telegram spans.
+
 ### Example Config
 
 `example/config.toml` is a starter config that shows the expected file layout.
