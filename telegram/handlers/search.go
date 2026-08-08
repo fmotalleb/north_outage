@@ -18,6 +18,7 @@ import (
 
 const (
 	maxSearchResult = 10
+	maxQueryLen     = 20
 	searchCommand   = "search"
 )
 
@@ -83,6 +84,7 @@ func searchByText(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 // handleSearch is the shared search logic used by both /search and plain text.
 func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query string) {
+	query = truncateQuery(query)
 	ctx, l := log.AsNamedChild(ctx, "handleSearch")
 	l.Debug("fetching events matching query", zap.String("query", query))
 	events, err := fetchEvents(query)
@@ -126,6 +128,16 @@ func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query 
 	if len(events) > 0 {
 		autodelete.Schedule(ctx, b, msg.Chat.ID, msg.ID, update.Message.ID)
 	}
+}
+
+// truncateQuery limits the search query to maxQueryLen characters (runes) so
+// long free-text messages cannot produce unbounded LIKE queries.
+func truncateQuery(query string) string {
+	runes := []rune(strings.TrimSpace(query))
+	if len(runes) <= maxQueryLen {
+		return string(runes)
+	}
+	return string(runes[:maxQueryLen])
 }
 
 func fetchEvents(search string) ([]im.Event, error) {
