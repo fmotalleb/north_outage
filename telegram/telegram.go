@@ -2,7 +2,10 @@ package telegram
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net"
+	"strings"
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
@@ -37,6 +40,8 @@ func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) err
 	hc := bot.WithHTTPClient(time.Second*30, client)
 	opts = append(opts, hc)
 	opts = append(opts, bot.WithMiddlewares(tracingMiddleware))
+	opts = append(opts, bot.WithErrorsHandler(botErrorsHandler(l)))
+	opts = append(opts, bot.WithDebugHandler(botDebugHandler(l)))
 	opts = append(opts, bot.WithAllowedUpdates([]string{
 		"message",
 		"edited_message",
@@ -135,4 +140,40 @@ func formatNotification(ctx context.Context, msg string, ev *im.Event, notifyWea
 	}
 	l.Debug("notification template evaluated")
 	return out
+}
+
+// botErrorsHandler routes go-telegram/bot error logs through the app's zap
+// logger. Transient long-polling (getUpdates) timeouts are expected and
+// retried internally with backoff, so they are reported at debug level
+// instead of spamming error logs.
+func botErrorsHandler(l *zap.Logger) bot.ErrorsHandler {
+	return func(err error) {
+		if isPollingTimeout(err) {
+			l.Debug("telegram poll timeout", zap.Error(err))
+			return
+		}
+		l.Error("telegram bot error", zap.Error(err))
+	}
+}
+
+// botDebugHandler routes go-telegram/bot debug logs through the app's zap
+// logger instead of the library's default stdlib log.
+func botDebugHandler(l *zap.Logger) bot.DebugHandler {
+	return func(format string, args ...any) {
+		l.Debug("telegram: " + fmt.Sprintf(format, args...))
+	}
+}
+
+// isPollingTimeout reports whether err is a transient network timeout from
+// the long-polling getUpdates loop. Auth/permission failures and other real
+// errors on the same loop do not match.
+func isPollingTimeout(err error) bool {
+	if !strings.Contains(err.Error(), "error get updates") {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	var ne net.Error
+	return errors.As(err, &ne) && ne.Timeout()
 }
