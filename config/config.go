@@ -28,6 +28,18 @@ type Config struct {
 	NotifyBefore time.Duration `mapstructure:"notify_before" env:"NOTIFY_BEFORE" default:"15m"`
 
 	Weather Weather `mapstructure:"weather"`
+
+	Tracing Tracing `mapstructure:"tracing"`
+}
+
+// Tracing configures OpenTelemetry trace export. URL selects the protocol
+// and transport security from its scheme: http:// and https:// use the OTLP
+// HTTP exporter, grpc:// and grpcs:// use the OTLP gRPC exporter. When URL is
+// empty no tracing is exported. Rate is the sampling ratio (0..1) applied to
+// API and Telegram interactions only; collector traces are always exported.
+type Tracing struct {
+	URL  string  `mapstructure:"url" env:"TRACING_URL"`
+	Rate float64 `mapstructure:"rate" env:"TRACING_RATE" default:"1"`
 }
 
 type Collector struct {

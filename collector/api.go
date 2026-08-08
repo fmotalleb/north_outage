@@ -11,9 +11,14 @@ import (
 
 	"github.com/fmotalleb/go-jalali"
 	"github.com/fmotalleb/go-tools/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/config"
+	"github.com/fmotalleb/north_outage/internal/otel"
 	"github.com/fmotalleb/north_outage/internal/template"
 	"github.com/fmotalleb/north_outage/models"
 )
@@ -73,22 +78,30 @@ func fetchData(ctx context.Context) ([]models.Event, error) {
 	}
 	collectorCfg := cfg.CollectorConfig
 
+	ctx, span := otel.CollectorTracer("north_outage.collector").Start(ctx, "collector.fetch",
+		trace.WithAttributes(attribute.String("collector.endpoint", collectorCfg.Endpoint)),
+	)
+	defer span.End()
+
 	ctx, cancel := context.WithTimeout(ctx, collectorCfg.Timeout)
 	defer cancel()
 
 	bodyStr, err := template.EvaluateTemplate(defaultBodyTemplate, nil)
 	if err != nil {
 		logger.Error("failed to evaluate body template", zap.Error(err))
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "failed to evaluate body template")
 		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, collectorCfg.Endpoint, bytes.NewBufferString(bodyStr))
 	if err != nil {
 		logger.Error("failed to create request", zap.Error(err))
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "failed to create request")
 		return nil, err
 	}
 
-	client := &http.Client{}
 	transport := &http.Transport{}
 	if collectorCfg.Proxy != nil {
 		transport.Proxy = http.ProxyURL(collectorCfg.Proxy)
@@ -96,10 +109,12 @@ func fetchData(ctx context.Context) ([]models.Event, error) {
 	transport.TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: !collectorCfg.SSLVerify,
 	}
-	client.Transport = transport
+	client := &http.Client{Transport: otelhttp.NewTransport(transport, otelhttp.WithTracerProvider(otel.CollectorProvider()))}
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("failed to send request", zap.Error(err))
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "failed to send request")
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -107,8 +122,11 @@ func fetchData(ctx context.Context) ([]models.Event, error) {
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		logger.Error("failed to parse response", zap.Error(err))
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "failed to parse response")
 		return nil, err
 	}
+	span.SetAttributes(attribute.Int("collector.events", len(response.OutageList)))
 	events := normalize(response, logger, collectorCfg)
 	return events, nil
 }

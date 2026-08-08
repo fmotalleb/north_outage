@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/config"
-
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 var server = echo.New()
@@ -23,6 +23,7 @@ func RegisterEndpoint(register func(*echo.Echo)) {
 }
 
 func init() {
+	server.Use(otelecho.Middleware("north_outage"))
 	server.Use(middleware.RequestLogger())
 	server.Use(middleware.Recover())
 }

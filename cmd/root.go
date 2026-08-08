@@ -21,12 +21,15 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/fmotalleb/go-tools/git"
 	"github.com/fmotalleb/go-tools/log"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/config"
+	"github.com/fmotalleb/north_outage/internal/otel"
 	"github.com/fmotalleb/north_outage/service"
 )
 
@@ -66,6 +69,17 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 		ctx = config.Attach(ctx, cfg)
+		otelShutdown, err := otel.Init(ctx, cfg.Tracing)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+			defer cancel()
+			if err := otelShutdown(shutdownCtx); err != nil {
+				log.Of(shutdownCtx).Error("failed to flush otel providers", zap.Error(err))
+			}
+		}()
 		return service.Serve(ctx)
 	},
 }

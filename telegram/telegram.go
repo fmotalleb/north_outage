@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 
 	"github.com/fmotalleb/north_outage/config"
@@ -31,9 +32,11 @@ func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) err
 	l.Debug("creating telegram bot client")
 	var opts []bot.Option
 	client := httpClient(tel.Proxy)
+	client.Transport = otelhttp.NewTransport(client.Transport)
 
 	hc := bot.WithHTTPClient(time.Second*30, client)
 	opts = append(opts, hc)
+	opts = append(opts, bot.WithMiddlewares(tracingMiddleware))
 	opts = append(opts, bot.WithAllowedUpdates([]string{
 		"message",
 		"edited_message",
