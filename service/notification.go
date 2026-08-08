@@ -134,7 +134,7 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 		ctx,
 		worker,
 		storage,
-		scheduler.WithTickerCycle[models.Notification](time.Second),
+		scheduler.WithTickerCycle[models.Notification](time.Minute),
 		scheduler.WithLogger[models.Notification](func(err error) {
 			l.Error("scheduler error", zap.Error(err))
 		}),
@@ -159,10 +159,10 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 					case <-ctx.Done():
 						return
 					case notifications <- models.Notification{
-							Listener: &l,
-							Event:    &ev,
-							Message:  "دیتای جدید",
-						}:
+						Listener: &l,
+						Event:    &ev,
+						Message:  "دیتای جدید",
+					}:
 					}
 					sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
 						Listener: &l,
