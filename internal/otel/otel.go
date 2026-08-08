@@ -22,7 +22,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/fmotalleb/north_outage/config"
@@ -30,12 +29,10 @@ import (
 
 const instrumentScope = "north_outage"
 
-var (
-	// collectorTP is the always-sampled provider used by the collector flow.
-	// It is nil until Init registers one; when tracing is disabled it stays
-	// nil and the accessors below fall back to a noop provider.
-	collectorTP *sdktrace.TracerProvider
-)
+// collectorTP is the always-sampled provider used by the collector flow.
+// It is nil until Init registers one; when tracing is disabled it stays
+// nil and the accessors below fall back to a noop provider.
+var collectorTP *sdktrace.TracerProvider
 
 // Init creates the exporters and tracer providers and registers the
 // rate-sampled provider as the process-global one. It returns a shutdown
@@ -55,20 +52,17 @@ func Init(ctx context.Context, cfg config.Tracing) (shutdown func(context.Contex
 		return nil, fmt.Errorf("invalid tracing url %q: missing host", cfg.URL)
 	}
 
-	res, err := resource.Merge(resource.Default(), resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceName("north_outage"),
-	))
-	if err != nil {
-		return nil, err
-	}
+	res := resource.Default()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// The exporters only need a short-lived context to connect; never derive
 	// a cancellable child of the app's shared context here.
 	initCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
 
-	exp, err := newExporter(initCtx, u)
+	exp, err := newExporter(initCtx, u, map[string]string(cfg.Headers))
 	if err != nil {
 		return nil, err
 	}
@@ -123,22 +117,22 @@ func CollectorProvider() trace.TracerProvider {
 	return collectorTP
 }
 
-func newExporter(ctx context.Context, u *url.URL) (sdktrace.SpanExporter, error) {
+func newExporter(ctx context.Context, u *url.URL, headers map[string]string) (sdktrace.SpanExporter, error) {
 	switch strings.ToLower(u.Scheme) {
 	case "http":
-		return newHTTPExporter(ctx, u, true)
+		return newHTTPExporter(ctx, u, headers, true)
 	case "https":
-		return newHTTPExporter(ctx, u, false)
+		return newHTTPExporter(ctx, u, headers, false)
 	case "grpc":
-		return newGRPCExporter(ctx, u, true)
+		return newGRPCExporter(ctx, u, headers, true)
 	case "grpcs":
-		return newGRPCExporter(ctx, u, false)
+		return newGRPCExporter(ctx, u, headers, false)
 	default:
 		return nil, fmt.Errorf("unsupported tracing url scheme %q (supported: http, https, grpc, grpcs)", u.Scheme)
 	}
 }
 
-func newHTTPExporter(ctx context.Context, u *url.URL, insecure bool) (*otlptrace.Exporter, error) {
+func newHTTPExporter(ctx context.Context, u *url.URL, headers map[string]string, insecure bool) (*otlptrace.Exporter, error) {
 	opts := []otlptracehttp.Option{otlptracehttp.WithEndpoint(u.Host)}
 	if insecure {
 		opts = append(opts, otlptracehttp.WithInsecure())
@@ -146,13 +140,19 @@ func newHTTPExporter(ctx context.Context, u *url.URL, insecure bool) (*otlptrace
 	if p := strings.TrimPrefix(u.Path, "/"); p != "" {
 		opts = append(opts, otlptracehttp.WithURLPath("/"+p))
 	}
+	if len(headers) != 0 {
+		opts = append(opts, otlptracehttp.WithHeaders(headers))
+	}
 	return otlptracehttp.New(ctx, opts...)
 }
 
-func newGRPCExporter(ctx context.Context, u *url.URL, insecure bool) (*otlptrace.Exporter, error) {
+func newGRPCExporter(ctx context.Context, u *url.URL, headers map[string]string, insecure bool) (*otlptrace.Exporter, error) {
 	opts := []otlptracegrpc.Option{otlptracegrpc.WithEndpoint(u.Host)}
 	if insecure {
 		opts = append(opts, otlptracegrpc.WithInsecure())
+	}
+	if len(headers) != 0 {
+		opts = append(opts, otlptracegrpc.WithHeaders(headers))
 	}
 	return otlptracegrpc.New(ctx, opts...)
 }

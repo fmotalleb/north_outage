@@ -170,6 +170,7 @@ Leave it empty to disable tracing entirely.
 | --- | --- | --- | --- |
 | `tracing.url` | `TRACING_URL` | OTLP collector endpoint. The URL scheme selects the protocol and transport security; empty disables tracing. | `http://localhost:4318` |
 | `tracing.rate` | `TRACING_RATE` | Sampling ratio (0..1) applied to web API and Telegram interactions. | `1` |
+| `tracing.headers` | `TRACING_HEADERS` | JSON object of extra headers sent with every export (collector auth, tenancy). | `{"X-Scope-OrgID":"acme"}` |
 
 The URL scheme decides how traces are exported:
 
@@ -182,6 +183,7 @@ Notes:
 
 - Collector traces are always exported regardless of `tracing.rate`.
 - `tracing.rate` only affects web API and Telegram spans.
+- `tracing.headers` is a JSON object in `TRACING_HEADERS` (e.g. `TRACING_HEADERS='{"X-Scope-OrgID":"acme"}'`); in the TOML file it can be written as a plain table instead: `headers = { "X-Scope-OrgID" = "acme" }`.
 
 ### Example Config
 

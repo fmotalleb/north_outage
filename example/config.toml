@@ -22,3 +22,4 @@ collect_on_start_threshold = "1s"
 # url = "grpc://localhost:4317"
 # url = "http://localhost:4318"
 # rate = 1
+# headers = { "X-Scope-OrgID" = "acme" }

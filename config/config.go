@@ -1,6 +1,8 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/url"
 	"time"
 
@@ -38,8 +40,32 @@ type Config struct {
 // empty no tracing is exported. Rate is the sampling ratio (0..1) applied to
 // API and Telegram interactions only; collector traces are always exported.
 type Tracing struct {
-	URL  string  `mapstructure:"url" env:"TRACING_URL"`
-	Rate float64 `mapstructure:"rate" env:"TRACING_RATE" default:"1"`
+	URL     string         `mapstructure:"url" env:"TRACING_URL"`
+	Rate    float64        `mapstructure:"rate" env:"TRACING_RATE" default:"1"`
+	Headers TracingHeaders `mapstructure:"headers" env:"TRACING_HEADERS"`
+}
+
+// TracingHeaders holds extra headers sent to the OTLP collector with every
+// export request (used for auth tokens such as Tempo's X-Scope-OrgID or
+// Honeycomb's X-Honeycomb-Team). It is written as a TOML table in the config
+// file or as a JSON object in TRACING_HEADERS, e.g.
+//
+//	TRACING_HEADERS='{"X-Scope-OrgID":"acme"}'
+type TracingHeaders map[string]string
+
+// UnmarshalText parses a JSON object into the header map, so the value can
+// come from an environment variable or a JSON string in the config file.
+func (t *TracingHeaders) UnmarshalText(text []byte) error {
+	if len(bytes.TrimSpace(text)) == 0 {
+		*t = nil
+		return nil
+	}
+	var headers map[string]string
+	if err := json.Unmarshal(text, &headers); err != nil {
+		return err
+	}
+	*t = headers
+	return nil
 }
 
 type Collector struct {
