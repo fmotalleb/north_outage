@@ -172,13 +172,13 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 					case notifications <- models.Notification{
 						Listener: &l,
 						Event:    &ev,
-						Message:  "دیتای جدید",
+						Message:  models.NotificationNewData,
 					}:
 					}
 					sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
 						Listener: &l,
 						Event:    &ev,
-						Message:  "به زودی",
+						Message:  models.NotificationUpcoming,
 					})
 				}
 			}

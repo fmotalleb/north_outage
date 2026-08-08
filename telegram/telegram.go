@@ -89,8 +89,7 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 func formatNotification(ctx context.Context, msg string, ev *im.Event, notifyWeather bool) string {
 	ctx, l := log.AsNamedChild(ctx, "formatNotification")
 	data := map[string]any{
-		"message": msg,
-		"event":   ev,
+		"event": ev,
 	}
 
 	if notifyWeather {
@@ -100,8 +99,16 @@ func formatNotification(ctx context.Context, msg string, ev *im.Event, notifyWea
 		}
 	}
 
+	tmpl := message.NotificationNew
+	switch msg {
+	case im.NotificationUpcoming:
+		tmpl = message.NotificationUp
+	case im.NotificationNewData:
+		tmpl = message.NotificationNew
+	}
+
 	l.Debug("evaluating notification template")
-	out, err := template.EvaluateTemplate(message.Notification, data)
+	out, err := template.EvaluateTemplate(tmpl, data)
 	if err != nil {
 		l.Error("failed to evaluate notification template", zap.Error(err))
 		return ""

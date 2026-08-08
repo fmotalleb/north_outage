@@ -2,6 +2,13 @@ package models
 
 import "time"
 
+const (
+	// NotificationNewData is delivered as soon as a matching outage is found.
+	NotificationNewData = "دیتای جدید"
+	// NotificationUpcoming is scheduled shortly before an outage starts.
+	NotificationUpcoming = "به زودی"
+)
+
 type Notification struct {
 	ID uint `gorm:"primaryKey" json:"id"`
 
