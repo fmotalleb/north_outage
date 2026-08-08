@@ -1,6 +1,7 @@
 package template
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -68,7 +69,8 @@ func add(a, b int) int {
 }
 
 // relTime returns a short, natural Persian duration relative to now,
-// e.g. "۱۵ دقیقه دیگه", "۳ ساعت پیش", "لحظاتی دیگه".
+// combining units where sensible, e.g. "۱ ساعت و ۱۲ دقیقه دیگه",
+// "۳ ساعت پیش", "لحظاتی دیگه".
 func relTime(t time.Time) string {
 	diff := t.Sub(time.Now())
 	future := diff >= 0
@@ -76,28 +78,38 @@ func relTime(t time.Time) string {
 		diff = -diff
 	}
 
-	var n int64
-	var unit string
-	switch {
-	case diff < time.Minute:
+	if diff < time.Minute {
 		if future {
 			return "لحظاتی دیگه"
 		}
 		return "لحظاتی پیش"
-	case diff < time.Hour:
-		n = int64(diff / time.Minute)
-		unit = "دقیقه"
-	case diff < 24*time.Hour:
-		n = int64(diff / time.Hour)
-		unit = "ساعت"
+	}
+
+	minutes := int64(diff / time.Minute)
+	days := minutes / (24 * 60)
+	minutes %= 24 * 60
+	hours := minutes / 60
+	minutes %= 60
+
+	var sb strings.Builder
+	switch {
+	case days > 0 && hours > 0:
+		fmt.Fprintf(&sb, "%s روز و %s ساعت", faNum(days), faNum(hours))
+	case days > 0:
+		fmt.Fprintf(&sb, "%s روز", faNum(days))
+	case hours > 0 && minutes > 0:
+		fmt.Fprintf(&sb, "%s ساعت و %s دقیقه", faNum(hours), faNum(minutes))
+	case hours > 0:
+		fmt.Fprintf(&sb, "%s ساعت", faNum(hours))
 	default:
-		n = int64(diff / (24 * time.Hour))
-		unit = "روز"
+		fmt.Fprintf(&sb, "%s دقیقه", faNum(minutes))
 	}
 	if future {
-		return faNum(n) + " " + unit + " دیگه"
+		sb.WriteString(" دیگه")
+	} else {
+		sb.WriteString(" پیش")
 	}
-	return faNum(n) + " " + unit + " پیش"
+	return sb.String()
 }
 
 func relativeDate(t time.Time) string {
