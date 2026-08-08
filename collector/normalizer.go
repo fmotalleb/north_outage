@@ -1,8 +1,13 @@
 package collector
 
 import (
+	"context"
 	"regexp"
 	"strings"
+
+	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/fmotalleb/north_outage/internal/otel"
 )
 
 var replacements = map[rune]rune{
@@ -39,6 +44,15 @@ var replacements = map[rune]rune{
 	'-': ' ',
 }
 var sanitizer = regexp.MustCompile(`\s\s+`)
+
+// fixAddress runs the persianFixer formatter inside a trace span so the
+// per-address cleanup work shows up under the collector trace.
+func fixAddress(ctx context.Context, input string) string {
+	_, span := otel.CollectorTracer("north_outage.collector").Start(ctx, "collector.persian_fix")
+	defer span.End()
+	span.SetAttributes(attribute.Int("collector.address_len", len(input)))
+	return persianFixer(input)
+}
 
 func persianFixer(input string) string {
 	var b strings.Builder

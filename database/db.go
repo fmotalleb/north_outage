@@ -29,6 +29,10 @@ func Connect(connection string) (*gorm.DB, error) {
 		dbLog.Error("failed to open connection", zap.Error(err))
 		return nil, err
 	}
+	if err = db.Use(tracingPlugin{}); err != nil {
+		dbLog.Error("failed to install tracing plugin", zap.Error(err))
+		return nil, err
+	}
 	dbLog.Debug("connection established")
 	rootDB = db
 	return db, nil

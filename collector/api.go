@@ -119,19 +119,25 @@ func fetchData(ctx context.Context) ([]models.Event, error) {
 	}
 	defer resp.Body.Close()
 	var response OutageResponse
+	_, parseSpan := otel.CollectorTracer("north_outage.collector").Start(ctx, "collector.parse")
 	err = json.NewDecoder(resp.Body).Decode(&response)
+	parseSpan.SetAttributes(attribute.Int("collector.raw_events", len(response.OutageList)))
 	if err != nil {
 		logger.Error("failed to parse response", zap.Error(err))
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to parse response")
+		parseSpan.RecordError(err)
+		parseSpan.SetStatus(codes.Error, "failed to parse response")
+		parseSpan.End()
 		return nil, err
 	}
+	parseSpan.End()
 	span.SetAttributes(attribute.Int("collector.events", len(response.OutageList)))
-	events := normalize(response, logger, collectorCfg)
+	events := normalize(ctx, response, logger, collectorCfg)
 	return events, nil
 }
 
-func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.Collector) []models.Event {
+func normalize(ctx context.Context, response OutageResponse, logger *zap.Logger, collectorCfg config.Collector) []models.Event {
+	ctx, span := otel.CollectorTracer("north_outage.collector").Start(ctx, "collector.mapper")
+	defer span.End()
 	events := make([]models.Event, 0, len(response.OutageList))
 	for _, v := range response.OutageList {
 		city, ok := defaultCityMap[v.City]
@@ -162,13 +168,14 @@ func normalize(response OutageResponse, logger *zap.Logger, collectorCfg config.
 		}
 		ev := &models.Event{
 			City:    city,
-			Address: persianFixer(v.Address),
+			Address: fixAddress(ctx, v.Address),
 			Start:   start,
 			End:     start.Add(duration),
 		}
 		ev.ResetHash()
 		events = append(events, *ev)
 	}
+	span.SetAttributes(attribute.Int("collector.mapped_events", len(events)))
 	return events
 }
 
