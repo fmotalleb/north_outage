@@ -1,0 +1,11 @@
+📡 <b>رویدادهای فعال و پیش‌رو شما</b>:
+{{- if not .events }}
+هیچ رویدادی یافت نشد.
+{{- else }}
+{{- range $e := .events }}
+---
+🗓 <b>{{ $e.Start | relDate }}</b> {{ $e.Start | jFormat "Monday 2006/01/02 January" | fanum }}
+⏰ <b>{{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | fanum }}</b> تا <b>{{ $e.EndClock }}{{ $e.End | jFormat "15:04" | fanum }}</b>
+🏠 <b>{{ $e.City }}</b> - {{ $e.Address }}
+{{- end }}
+{{- end }}

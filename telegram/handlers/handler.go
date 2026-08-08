@@ -16,5 +16,6 @@ func SetupHandlers(ctx context.Context, b *bot.Bot) {
 	registerVersionHandlers(b)
 	registerListenHandlers(b)
 	registerMyListHandlers(b)
+	registerEventsHandlers(b)
 	l.Debug("all telegram handlers registered")
 }
