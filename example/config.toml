@@ -13,3 +13,12 @@ collect_cycle = "@hourly"
 
 collect_on_start = true
 collect_on_start_threshold = "1s"
+
+# OpenTelemetry trace export. url scheme selects the protocol: http/https use
+# the OTLP HTTP exporter, grpc/grpcs use OTLP gRPC. Leave url empty (or unset)
+# to disable tracing. rate (0..1) is the sampling ratio applied to API and
+# Telegram interactions only; collector traces are always exported.
+# [tracing]
+# url = "grpc://localhost:4317"
+# url = "http://localhost:4318"
+# rate = 1
