@@ -121,9 +121,19 @@ func (n *NotificationStorage) Close() {}
 func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-chan models.Event, notifications chan models.Notification) {
 	ctx, l := log.AsNamedChild(ctx, "NotificationTransformer")
 	cfg, _ := config.Get(ctx)
+	// Keep a full-featured db handle for mute lookups; `db` is reassigned to
+	// the listeners table below for the cached listener queries.
+	muteDB := db
 	worker := worker.NewWorkerPool(
 		context.WithoutCancel(ctx),
 		func(ctx context.Context, n models.Notification) {
+			if isMuted(muteDB, n.Listener.ID, n.Event.ID) {
+				l.Debug("skipping muted notification",
+					zap.Uint("listener_id", n.Listener.ID),
+					zap.Uint("event_id", n.Event.ID),
+				)
+				return
+			}
 			select {
 			case <-ctx.Done():
 			case notifications <- n:
@@ -161,22 +171,29 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 	for {
 		select {
 		case ev := <-events:
-			for _, l := range getListeners(db) {
-				if ev.City != l.City {
+			for _, li := range getListeners(db) {
+				if ev.City != li.City {
 					continue
 				}
-				if strings.Contains(ev.Address, l.SearchTerm) {
+				if strings.Contains(ev.Address, li.SearchTerm) {
+					if isMuted(muteDB, li.ID, ev.ID) {
+						l.Debug("skipping muted event for listener",
+							zap.Uint("listener_id", li.ID),
+							zap.Uint("event_id", ev.ID),
+						)
+						continue
+					}
 					select {
 					case <-ctx.Done():
 						return
 					case notifications <- models.Notification{
-						Listener: &l,
+						Listener: &li,
 						Event:    &ev,
 						Message:  models.NotificationNewData,
 					}:
 					}
 					sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
-						Listener: &l,
+						Listener: &li,
 						Event:    &ev,
 						Message:  models.NotificationUpcoming,
 					})
@@ -193,6 +210,16 @@ var (
 	listenersCache      []models.Listener
 	listenersCacheExpAt time.Time
 )
+
+// isMuted reports whether the given listener+event pair has been muted
+// (DND) by the user.
+func isMuted(db *gorm.DB, listenerID, eventID uint) bool {
+	var count int64
+	db.Model(&models.NotificationMute{}).
+		Where("listener_id = ? AND event_id = ?", listenerID, eventID).
+		Count(&count)
+	return count > 0
+}
 
 func getListeners(db *gorm.DB) []models.Listener {
 	listenersCacheMu.Lock()

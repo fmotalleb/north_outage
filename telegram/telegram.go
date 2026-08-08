@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
@@ -10,11 +11,13 @@ import (
 	"github.com/fmotalleb/north_outage/config"
 	"github.com/fmotalleb/north_outage/internal/template"
 	im "github.com/fmotalleb/north_outage/models"
+	"github.com/fmotalleb/north_outage/telegram/autodelete"
 	"github.com/fmotalleb/north_outage/telegram/handlers"
 	"github.com/fmotalleb/north_outage/telegram/message"
 	"github.com/fmotalleb/north_outage/weather"
 
 	"github.com/go-telegram/bot"
+	tgmodels "github.com/go-telegram/bot/models"
 )
 
 func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) error {
@@ -38,6 +41,7 @@ func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) err
 		"edited_channel_post",
 		"callback_query",
 	}))
+	autodelete.Init(ctx)
 
 	b, err := bot.New(tel.BotKey, opts...)
 	if err != nil {
@@ -72,6 +76,18 @@ func bindToChannel(ctx context.Context, b *bot.Bot, nc <-chan im.Notification) {
 			cfg, err := config.Get(ctx)
 			notifyWeather := err == nil && cfg.Weather.Notify
 			sp.Text = formatNotification(ctx, n.Message, n.Event, notifyWeather)
+			if n.Message == im.NotificationNewData {
+				sp.ReplyMarkup = &tgmodels.InlineKeyboardMarkup{
+					InlineKeyboard: [][]tgmodels.InlineKeyboardButton{
+						{
+							{
+								Text:         "🔕 یادآوری این رویداد را خاموش کن",
+								CallbackData: fmt.Sprintf("mute:%d:%d", n.Listener.ID, n.Event.ID),
+							},
+						},
+					},
+				}
+			}
 			l.Debug("sending notification message to telegram")
 			m, err := b.SendMessage(ctx, sp)
 			if err != nil {

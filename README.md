@@ -103,13 +103,20 @@ Telegram is enabled when `telegram.key` or `TELEGRAM_BOT` is set.
 | `telegram.timeout` | `TELEGRAM_BOT_TIMEOUT` | HTTP timeout for Telegram requests. | `30s` |
 | `telegram.proxy` | `TELEGRAM_BOT_PROXY` | Optional HTTP proxy URL. | `http://127.0.0.1:7890` |
 | `telegram.api` | `TELEGRAM_BOT_ENDPOINT` | Telegram API base URL. | `https://api.telegram.org` |
+| `telegram.message_ttl` | `TELEGRAM_MESSAGE_TTL` | How long menu-like messages (search results, lists) stay before auto-deletion unless the user keeps interacting. | `1m` |
 
 Telegram behavior:
 
 - `/start` and `/help` return the help text.
 - `/search <text>` searches stored outages and shows city buttons.
+- `/mylist` or `/list` shows your monitored items with remove buttons.
+- `/clear` removes all your monitored items after confirmation.
+- `/events` lists active and upcoming events for your monitors.
+- `/notifications` lists notifications you received; each can be muted (DND) or unmuted.
 - `/version` prints the build version.
 - Button presses create a listener for the selected city and search text.
+- A "new data" notification carries a button to silence the upcoming reminder for that event.
+- Menu-like messages are deleted automatically after `telegram.message_ttl` (default `1m`) without interaction.
 
 Telegram setup:
 

@@ -1,0 +1,13 @@
+📢 <b>اعلان‌های شما</b>:
+
+{{- range $i, $n := .notifications }}
+{{ add $i 1 | fanum }}. 🏙 <b>{{ $n.Event.City }}</b>
+   📍 {{ $n.Event.Address }}
+   ⏰ {{ $n.Event.StartClock }}{{ $n.Event.Start | jFormat "15:04" | fanum }} تا {{ $n.Event.EndClock }}{{ $n.Event.End | jFormat "15:04" | fanum }}
+   🕘 {{ $n.Event.Start | relDate }} — {{ $n.Message }}
+   {{- if $n.Muted }}
+   🔕 غیرفعال شده
+   {{- end }}
+
+{{- end }}
+👇 برای خاموش/روشن کردن اعلان هر رویداد، دکمهٔ مربوطه را بزنید.

@@ -34,7 +34,7 @@ func Serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&models.Listener{}, &models.Event{}, &models.Notification{}, &models.ScheduledNotification{}); err != nil {
+	if err = db.AutoMigrate(&models.Listener{}, &models.Event{}, &models.Notification{}, &models.ScheduledNotification{}, &models.NotificationMute{}); err != nil {
 		return err
 	}
 	l.Info("config initialized", zap.Any("cfg", cfg))

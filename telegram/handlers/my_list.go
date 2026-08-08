@@ -12,6 +12,7 @@ import (
 	"github.com/fmotalleb/north_outage/database"
 	"github.com/fmotalleb/north_outage/internal/template"
 	im "github.com/fmotalleb/north_outage/models"
+	"github.com/fmotalleb/north_outage/telegram/autodelete"
 	"github.com/fmotalleb/north_outage/telegram/helpers"
 	"github.com/fmotalleb/north_outage/telegram/message"
 )
@@ -85,6 +86,9 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	l.Debug("mylist sent", zap.Int("msg_id", msg.ID), zap.Int("listener_count", len(listeners)))
+	if mp.ReplyMarkup != nil {
+		autodelete.Schedule(ctx, b, chatID, msg.ID)
+	}
 }
 
 func buildMyListKeyboard(listeners []im.Listener) [][]models.InlineKeyboardButton {
@@ -292,6 +296,9 @@ func clearAll(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 	l.Debug("clear confirmation sent", zap.Int("msg_id", msg.ID))
+	if mp.ReplyMarkup != nil {
+		autodelete.Schedule(ctx, b, chatID, msg.ID)
+	}
 }
 
 func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {

@@ -45,6 +45,10 @@ type Telegram struct {
 	Timeout  time.Duration `mapstructure:"timeout" env:"TELEGRAM_BOT_TIMEOUT" default:"30s" validate:"required"`
 	Proxy    *url.URL      `mapstructure:"proxy" env:"TELEGRAM_BOT_PROXY"`
 	Endpoint url.URL       `mapstructure:"api" env:"TELEGRAM_BOT_ENDPOINT" default:"https://api.telegram.org" validate:"required"`
+	// MessageTTL controls how long menu-like bot messages (search results,
+	// lists, confirmations) are kept before they are deleted, unless the user
+	// keeps interacting with them.
+	MessageTTL time.Duration `mapstructure:"message_ttl" env:"TELEGRAM_MESSAGE_TTL" default:"1m"`
 }
 
 type Mattermost struct {
