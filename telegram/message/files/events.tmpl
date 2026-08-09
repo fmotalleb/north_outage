@@ -2,8 +2,10 @@
 {{- if not .events }}
 هنوز قطعی‌ای پیدا نشده. 😌
 {{- else }}
-{{- range $e := .events }}
----
+{{- range $i, $e := .events }}
+{{- if $i }}
+━━━━━━━━━━━━━━━━━━
+{{- end }}
 🏙️ <b>{{ $e.City }}</b> — {{ $e.Address }}
 🗓️ {{ $e.Start | relDate }}، {{ $e.Start | jFormat "2006/01/02" | faNum }}
 ⏰ از {{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | faNum }} تا {{ $e.EndClock }}{{ $e.End | jFormat "15:04" | faNum }}

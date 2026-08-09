@@ -1,6 +1,8 @@
 🤖 موارد یافت شده: {{ .results | len | int | faNum }}
-{{- range $e := slice .results 0 (min 4 (len .results)) }}
----
+{{- range $i, $e := slice .results 0 (min 4 (len .results)) }}
+{{- if $i }}
+━━━━━━━━━━━━━━━━━━
+{{- end }}
 🗓 <b>{{ $e.Start | relDate }}</b> {{ $e.Start | jFormat "Monday 2006/01/02 January" | faNum }}
 ⏰ <b>{{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | faNum }}</b> تا <b>{{ $e.EndClock }}{{ $e.End | jFormat "15:04" | faNum }}</b>
 🏠 <b>{{ $e.City }}</b> - {{ $e.Address }}
