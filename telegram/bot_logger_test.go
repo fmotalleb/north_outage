@@ -32,7 +32,7 @@ func TestIsPollingTimeout(t *testing.T) {
 		},
 		{
 			name: "non-timeout getUpdates failure",
-			err:  fmt.Errorf("error get updates, error do request for method getUpdates: 401 Unauthorized"),
+			err:  errors.New("error get updates, error do request for method getUpdates: 401 Unauthorized"),
 			want: false,
 		},
 		{

@@ -20,7 +20,6 @@ func Setup(ctx context.Context, cfg *config.Config) {
 	registerRoutes(ctx, cfg)
 }
 
-
 func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) error {
 	ctx, l := log.AsNamedChild(ctx, "Mattermost")
 	if cfg.Mattermost.BotToken == "" || cfg.Mattermost.ServerURL == "" {

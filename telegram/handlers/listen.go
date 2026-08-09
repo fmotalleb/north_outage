@@ -113,7 +113,7 @@ func cancelListen(ctx context.Context, b *bot.Bot, update *models.Update) {
 	ctx, l := log.AsNamedChild(ctx, "cancelListen")
 	l = l.With(zap.Any("chat", chat))
 	ctx = log.WithLogger(ctx, l)
-	l.Debug("user cancelled search")
+	l.Debug("user canceled search")
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,

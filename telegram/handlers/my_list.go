@@ -351,7 +351,7 @@ func cancelClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 	ctx, l := log.AsNamedChild(ctx, "cancelClear")
 	l = l.With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
 	ctx = log.WithLogger(ctx, l)
-	l.Debug("user cancelled clear-all")
+	l.Debug("user canceled clear-all")
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,

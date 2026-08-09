@@ -46,7 +46,6 @@ func (tracingPlugin) Initialize(db *gorm.DB) error {
 			return registerOp(cb.Raw(), "raw", "gorm:raw", "gorm:after_raw", beforeCallback("raw"), afterCallback)
 		}},
 	} {
-		o := o
 		if err := o.register(); err != nil {
 			return err
 		}
