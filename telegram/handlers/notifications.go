@@ -56,14 +56,15 @@ func notifications(ctx context.Context, b *bot.Bot, update *models.Update) {
 	ctx = log.WithLogger(ctx, l)
 
 	mp := helpers.MakeMessage(update)
-	rows, err := notificationRows(database.Get().WithContext(ctx), ctx, chatID)
-	if err != nil {
+	rows, err := notificationRows(database.Get().WithContext(ctx), chatID)
+	switch {
+	case err != nil:
 		l.Error("failed to query notifications", zap.Error(err))
-		mp.Text = "خطا در دریافت اعلان‌ها"
-	} else if len(rows) == 0 {
+		mp.Text = "خطا در دریافت اعلان\u200cها"
+	case len(rows) == 0:
 		l.Debug("no notifications found for chat")
 		mp.Text = "📭 هنوز اعلانی برای شما ثبت نشده است.\n\nبرای شروع، از /search استفاده کنید."
-	} else {
+	default:
 		l.Debug("notifications retrieved", zap.Int("count", len(rows)))
 		if len(rows) > maxListItems {
 			rows = rows[:maxListItems]
@@ -71,10 +72,11 @@ func notifications(ctx context.Context, b *bot.Bot, update *models.Update) {
 		data := map[string]any{
 			"notifications": rows,
 		}
-		out, err := template.EvaluateTemplate(message.Notifications, data)
+		var out string
+		out, err = template.EvaluateTemplate(message.Notifications, data)
 		if err != nil {
 			l.Error("failed to evaluate notifications template", zap.Error(err))
-			mp.Text = "خطایی در نمایش خروجی پیش اومده"
+			mp.Text = renderErrorText
 		} else {
 			mp.Text = out
 			mp.ReplyMarkup = &models.InlineKeyboardMarkup{
@@ -191,7 +193,7 @@ func toggleNotificationMute(ctx context.Context, b *bot.Bot, update *models.Upda
 	// Update the message: re-render the whole list, or toggle the single
 	// button on a standalone notification message.
 	if strings.HasPrefix(msg.Text, notificationsListHeader) {
-		if err := renderNotificationsList(ctx, b, msg, l); err != nil {
+		if err := renderNotificationsList(ctx, b, msg); err != nil {
 			l.Error("failed to refresh notifications list", zap.Error(err))
 		}
 	} else {
@@ -227,7 +229,7 @@ func closeNotifications(ctx context.Context, b *bot.Bot, update *models.Update) 
 
 // notificationRows returns the user's notifications, deduplicated per
 // listener+event pair, most recent first, along with their mute state.
-func notificationRows(db *gorm.DB, ctx context.Context, chatID int64) ([]notificationRow, error) {
+func notificationRows(db *gorm.DB, chatID int64) ([]notificationRow, error) {
 	var notifs []im.Notification
 	if err := db.Model(&im.Notification{}).
 		Joins("JOIN listeners ON listeners.id = notifications.listener_id").
@@ -322,8 +324,8 @@ func buildNotificationsKeyboard(rows []notificationRow) [][]models.InlineKeyboar
 	return buttons
 }
 
-func renderNotificationsList(ctx context.Context, b *bot.Bot, msg *models.Message, l *zap.Logger) error {
-	rows, err := notificationRows(database.Get().WithContext(ctx), ctx, msg.Chat.ID)
+func renderNotificationsList(ctx context.Context, b *bot.Bot, msg *models.Message) error {
+	rows, err := notificationRows(database.Get().WithContext(ctx), msg.Chat.ID)
 	if err != nil {
 		return err
 	}

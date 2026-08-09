@@ -56,6 +56,17 @@ linters:
       allow-unused: false
     revive:
       confidence: 1
+    goconst:
+      match-constant: true
+      min-len: 4
+      min-occurrences: 5
+      ignore-calls: true
+      numbers: false
+      min: 3
+      max: 3
+      find-duplicates: false
+      eval-const-expressions: false
+      ignore-tests: false
   exclusions:
     generated: lax
     presets:

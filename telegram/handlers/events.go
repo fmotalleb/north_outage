@@ -73,7 +73,7 @@ func events(ctx context.Context, b *bot.Bot, update *models.Update) {
 	out, err := message.EvaluateMessageTemplate(message.Events, data, update)
 	if err != nil {
 		l.Error("failed to evaluate events template", zap.Error(err))
-		mp.Text = "خطایی در نمایش خروجی پیش اومده"
+		mp.Text = renderErrorText
 	} else {
 		mp.Text = out
 	}

@@ -117,7 +117,7 @@ func CollectorTracer(name string) trace.Tracer {
 // outbound HTTP client so its spans stay outside the sampling rate.
 func CollectorProvider() trace.TracerProvider {
 	if collectorTP == nil {
-		return trace.NewNoopTracerProvider()
+		return noop.NewTracerProvider()
 	}
 	return collectorTP
 }

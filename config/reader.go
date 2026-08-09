@@ -22,7 +22,7 @@ func ReadConfig(ctx context.Context, conf string) (*Config, error) {
 	if err = decoder.Decode(cfg, raw); err != nil {
 		return nil, err
 	}
-	if err := defaulter.ApplyDefaults(cfg, cfg); err != nil {
+	if err = defaulter.ApplyDefaults(cfg, cfg); err != nil {
 		return nil, err
 	}
 	validate := validator.New(validator.WithRequiredStructEnabled())

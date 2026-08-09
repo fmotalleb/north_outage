@@ -11,11 +11,13 @@ import (
 
 //# go:build orm-sqlite
 
+type sqliteBuilder struct{}
+
 func init() {
-	builders["sqlite"] = sqliteBuilder
+	builders["sqlite"] = sqliteBuilder{}
 }
 
-func sqliteBuilder(c *url.URL) (gorm.Dialector, error) {
+func (sqliteBuilder) Build(c *url.URL) (gorm.Dialector, error) {
 	fullPath := path.Join(c.Hostname(), c.Path)
 	parent := path.Dir(fullPath)
 	if _, err := os.ReadDir(parent); err != nil {

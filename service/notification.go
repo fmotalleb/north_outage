@@ -192,11 +192,13 @@ func eventToNotificationTransformer(ctx context.Context, db *gorm.DB, events <-c
 						Message:  models.NotificationNewData,
 					}:
 					}
-					sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
+					if _, err := sc.Add(ev.Start.Add(cfg.NotifyBefore*-1), models.Notification{
 						Listener: &li,
 						Event:    &ev,
 						Message:  models.NotificationUpcoming,
-					})
+					}); err != nil {
+						l.Error("failed to schedule upcoming notification", zap.Error(err))
+					}
 				}
 			}
 		case <-ctx.Done():

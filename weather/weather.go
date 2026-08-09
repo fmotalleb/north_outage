@@ -150,12 +150,17 @@ func getCoords(city string) (lat, lon float64, ok bool) {
 // ── Open-Meteo fetcher ─────────────────────────────────────────────────────
 
 const (
-	forecastAPI = "https://api.open-meteo.com/v1/forecast"
-	archiveAPI  = "https://archive-api.open-meteo.com/v1/archive"
+	forecastAPI     = "https://api.open-meteo.com/v1/forecast"
+	archiveAPI      = "https://archive-api.open-meteo.com/v1/archive"
+	sourceOpenMeteo = "Open-Meteo"
 )
 
 func toDateStr(t time.Time) string {
 	return t.UTC().Format("2006-01-02")
+}
+
+func openMeteoError(note string) *WeatherData {
+	return &WeatherData{Source: sourceOpenMeteo, Available: false, Note: note}
 }
 
 func fetchOpenMeteo(ctx context.Context, city string, start, end time.Time) *WeatherData {
@@ -163,61 +168,58 @@ func fetchOpenMeteo(ctx context.Context, city string, start, end time.Time) *Wea
 
 	lat, lon, found := getCoords(city)
 	if !found {
-		return &WeatherData{Source: "Open-Meteo", Available: false, Note: "مختصاتی برای این شهر یافت نشد"}
+		return openMeteoError("مختصاتی برای این شهر یافت نشد")
 	}
 
-	startStr := toDateStr(start)
-	endStr := toDateStr(end)
-
 	// Decide forecast vs archive.
-	hoursAhead := end.Sub(now).Hours()
-	isFuture := hoursAhead > 24
-	hoursBehind := now.Sub(end).Hours()
-	isPastTooFar := hoursBehind > 6*24
-
 	base := forecastAPI
-	if !isFuture && isPastTooFar {
+	if !(end.Sub(now).Hours() > 24) && now.Sub(end).Hours() > 6*24 {
 		base = archiveAPI
 	}
 
 	u := fmt.Sprintf("%s?latitude=%.4f&longitude=%.4f&hourly=temperature_2m,relative_humidity_2m,cloud_cover&start_date=%s&end_date=%s&timezone=auto",
-		base, lat, lon, startStr, endStr)
+		base, lat, lon, toDateStr(start), toDateStr(end))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return &WeatherData{Source: "Open-Meteo", Available: false, Note: err.Error()}
+		return openMeteoError(err.Error())
 	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return &WeatherData{Source: "Open-Meteo", Available: false, Note: err.Error()}
+		return openMeteoError(err.Error())
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return &WeatherData{Source: "Open-Meteo", Available: false, Note: fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(body))}
+		return openMeteoError(fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(body)))
 	}
 
-	var result struct {
-		Hourly struct {
-			Times              []string  `json:"time"`
-			Temperature2m      []float64 `json:"temperature_2m"`
-			RelativeHumidity2m []float64 `json:"relative_humidity_2m"`
-			CloudCover         []float64 `json:"cloud_cover"`
-		} `json:"hourly"`
-	}
+	var result openMeteoResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return &WeatherData{Source: "Open-Meteo", Available: false, Note: err.Error()}
+		return openMeteoError(err.Error())
 	}
+	return summarizeOpenMeteo(&result, start, end)
+}
 
+type openMeteoResponse struct {
+	Hourly struct {
+		Times              []string  `json:"time"`
+		Temperature2m      []float64 `json:"temperature_2m"`
+		RelativeHumidity2m []float64 `json:"relative_humidity_2m"`
+		CloudCover         []float64 `json:"cloud_cover"`
+	} `json:"hourly"`
+}
+
+func summarizeOpenMeteo(result *openMeteoResponse, start, end time.Time) *WeatherData {
 	times := result.Hourly.Times
 	temps := result.Hourly.Temperature2m
 	hums := result.Hourly.RelativeHumidity2m
 	clouds := result.Hourly.CloudCover
 
 	if len(times) == 0 {
-		return &WeatherData{Source: "Open-Meteo", Available: false, Note: "empty response"}
+		return openMeteoError("empty response")
 	}
 
 	startMs := start.UnixMilli()
@@ -260,7 +262,7 @@ func fetchOpenMeteo(ctx context.Context, city string, start, end time.Time) *Wea
 	}
 
 	return &WeatherData{
-		Source:      "Open-Meteo",
+		Source:      sourceOpenMeteo,
 		Available:   true,
 		AvgTemp:     avg(sampledTemps),
 		AvgHumidity: avg(sampledHums),

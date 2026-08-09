@@ -23,19 +23,24 @@ import (
 	"github.com/fmotalleb/north_outage/models"
 )
 
+const (
+	citySari  = "ساری"
+	cityBabol = "بابل"
+)
+
 var defaultCityMap = map[int]string{
-	2:  "ساری",
-	3:  "ساری",
-	4:  "ساری",
-	5:  "ساری",
-	6:  "ساری",
+	2:  citySari,
+	3:  citySari,
+	4:  citySari,
+	5:  citySari,
+	6:  citySari,
 	7:  "میاندرود",
-	13: "بابل",
+	13: cityBabol,
 	14: "نکا",
 	21: "گلوگاه",
 	22: "بهشهر",
 	23: "بهشهر",
-	25: "بابل",
+	25: cityBabol,
 	26: "بهشهر",
 	31: "قائمشهر",
 	32: "قائمشهر",
@@ -48,13 +53,13 @@ var defaultCityMap = map[int]string{
 	51: "جویبار",
 	52: "جویبار",
 	53: "بابلسر",
-	61: "بابل",
-	62: "بابل",
-	64: "بابل",
-	65: "بابل",
-	66: "بابل",
-	67: "بابل",
-	68: "بابل",
+	61: cityBabol,
+	62: cityBabol,
+	64: cityBabol,
+	65: cityBabol,
+	66: cityBabol,
+	67: cityBabol,
+	68: cityBabol,
 	71: "آمل",
 	72: "آمل",
 	73: "آمل",
@@ -64,7 +69,7 @@ var defaultCityMap = map[int]string{
 	84: "نکا",
 	85: "بابلسر",
 	86: "فریدونکنار",
-	87: "ساری",
+	87: citySari,
 }
 
 const defaultBodyTemplate = `{"fromDate":"{{ now | jFormat "2006/01/02" | faNum }}","toDate":"{{ now | dateModify "24h" | jFormat "2006/01/02" | faNum }}","city":-1,"pgds":""}`
@@ -136,19 +141,19 @@ func fetchData(ctx context.Context) ([]models.Event, error) {
 }
 
 func normalize(ctx context.Context, response OutageResponse, logger *zap.Logger, collectorCfg config.Collector) []models.Event {
-	ctx, span := otel.CollectorTracer("north_outage.collector").Start(ctx, "collector.mapper")
+	_, span := otel.CollectorTracer("north_outage.collector").Start(ctx, "collector.mapper")
 	defer span.End()
+	loc, err := time.LoadLocation("Asia/Tehran")
+	if err != nil {
+		logger.Warn("failed to load Asia/Tehran timezone, falling back to UTC", zap.Error(err))
+		loc = time.UTC
+	}
 	events := make([]models.Event, 0, len(response.OutageList))
 	for _, v := range response.OutageList {
 		city, ok := defaultCityMap[v.City]
 		if !ok {
 			logger.Error("city id is not found in city mapper", zap.Any("event", v))
 			continue
-		}
-		loc, err := time.LoadLocation("Asia/Tehran")
-		if err != nil {
-			logger.Warn("failed to load Asia/Tehran timezone, falling back to UTC", zap.Error(err))
-			loc = time.UTC
 		}
 		// sometimes outages omit time, maybe unplanned ones?
 		ot := cmp.Or(v.OutageTime, "00:00")
@@ -168,7 +173,7 @@ func normalize(ctx context.Context, response OutageResponse, logger *zap.Logger,
 		}
 		ev := &models.Event{
 			City:    city,
-			Address: fixAddress(ctx, v.Address),
+			Address: persianFixer(v.Address),
 			Start:   start,
 			End:     start.Add(duration),
 		}

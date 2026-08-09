@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/fmotalleb/go-tools/log"
 
@@ -30,7 +29,7 @@ func Run(ctx context.Context, cfg *config.Config, nc <-chan im.Notification) err
 	client := &http.Client{
 		Timeout: cfg.Mattermost.Timeout,
 	}
-	go bindToChannel(ctx, l, client, cfg, nc)
+	go bindToChannel(ctx, client, cfg, nc)
 	<-ctx.Done()
 	return nil
 }
@@ -70,11 +69,4 @@ func joinURL(base *url.URL, path string) string {
 	cp := *base
 	cp.Path = strings.TrimRight(cp.Path, "/") + path
 	return cp.String()
-}
-
-func clientWithTimeout(timeout time.Duration) *http.Client {
-	if timeout <= 0 {
-		timeout = 30 * time.Second
-	}
-	return &http.Client{Timeout: timeout}
 }

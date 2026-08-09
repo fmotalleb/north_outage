@@ -17,7 +17,10 @@ import (
 	"github.com/fmotalleb/north_outage/telegram/message"
 )
 
-const maxListItems = 20
+const (
+	maxListItems    = 20
+	renderErrorText = "خطایی در نمایش خروجی پیش اومده"
+)
 
 func registerMyListHandlers(b *bot.Bot) {
 	b.RegisterHandlerMatchFunc(func(update *models.Update) bool {
@@ -49,13 +52,14 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	mp := helpers.MakeMessage(update)
 
-	if err != nil {
+	switch {
+	case err != nil:
 		l.Error("failed to query listeners", zap.Error(err))
 		mp.Text = "خطا در دریافت داده"
-	} else if len(listeners) == 0 {
+	case len(listeners) == 0:
 		l.Debug("no listeners found for chat")
 		mp.Text = "📭 شما هیچ آیتمی را مانیتور نکردید.\n\nبرای افزودن، یک پیام متنی با آدرس موردنظر بفرستید یا از دستور /search استفاده کنید."
-	} else {
+	default:
 		l.Debug("listeners retrieved", zap.Int("count", len(listeners)))
 		// Limit to maxListItems
 		if len(listeners) > maxListItems {
@@ -70,7 +74,7 @@ func myList(ctx context.Context, b *bot.Bot, update *models.Update) {
 		out, err = message.EvaluateMessageTemplate(message.List, data, update)
 		if err != nil {
 			l.Error("failed to evaluate list template", zap.Error(err))
-			mp.Text = "خطایی در نمایش خروجی پیش اومده"
+			mp.Text = renderErrorText
 		} else {
 			l.Debug("list template evaluated successfully")
 			mp.Text = out
@@ -191,7 +195,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		editParams := &bot.EditMessageTextParams{
 			ChatID:      msg.Chat.ID,
 			MessageID:   msg.ID,
-			Text:        "✅ همه آیتم‌ها حذف شدند.\n\nبرای افزودن، از /search استفاده کنید.",
+			Text:        "✅ همه آیتم\u200cها حذف شدند.\n\nبرای افزودن، از /search استفاده کنید.",
 			ParseMode:   models.ParseModeHTML,
 			ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: make([][]models.InlineKeyboardButton, 0)},
 		}
@@ -213,7 +217,7 @@ func removeListener(ctx context.Context, b *bot.Bot, update *models.Update) {
 		l.Error("failed to evaluate list template", zap.Error(err))
 		_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            "خطایی در نمایش خروجی پیش اومده",
+			Text:            renderErrorText,
 			ShowAlert:       false,
 		})
 		return
@@ -345,52 +349,31 @@ func confirmClear(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func cancelClear(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update == nil || update.CallbackQuery == nil {
-		return
-	}
-	ctx, l := log.AsNamedChild(ctx, "cancelClear")
-	l = l.With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
-	ctx = log.WithLogger(ctx, l)
-	l.Debug("user canceled clear-all")
-
-	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-		CallbackQueryID: update.CallbackQuery.ID,
-		Text:            "حذف لغو شد ✓",
-		ShowAlert:       false,
-	})
-
-	// Remove the keyboard
-	msg := update.CallbackQuery.Message.Message
-	if msg != nil {
-		l.Debug("removing inline keyboard on cancel")
-		editParams := &bot.EditMessageReplyMarkupParams{
-			ChatID:      msg.Chat.ID,
-			MessageID:   msg.ID,
-			ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: make([][]models.InlineKeyboardButton, 0)},
-		}
-		_, _ = b.EditMessageReplyMarkup(ctx, editParams)
-	}
+	closeCallbackMessage(ctx, b, update, "cancelClear", "حذف لغو شد ✓", "user canceled clear-all", "removing inline keyboard on cancel")
 }
 
 func closeList(ctx context.Context, b *bot.Bot, update *models.Update) {
+	closeCallbackMessage(ctx, b, update, "closeList", "بسته شد ✓", "user closed list", "removing inline keyboard on close")
+}
+
+func closeCallbackMessage(ctx context.Context, b *bot.Bot, update *models.Update, logName, answerText, logDebug, ioDebug string) {
 	if update == nil || update.CallbackQuery == nil {
 		return
 	}
-	ctx, l := log.AsNamedChild(ctx, "closeList")
+	ctx, l := log.AsNamedChild(ctx, logName)
 	l = l.With(zap.Any("chat", update.CallbackQuery.Message.Message.Chat))
 	ctx = log.WithLogger(ctx, l)
-	l.Debug("user closed list")
+	l.Debug(logDebug)
 
 	_, _ = b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
-		Text:            "بسته شد ✓",
+		Text:            answerText,
 		ShowAlert:       false,
 	})
 
 	// Remove the keyboard
-	msg := update.CallbackQuery.Message.Message
-	if msg != nil {
-		l.Debug("removing inline keyboard on close")
+	if msg := update.CallbackQuery.Message.Message; msg != nil {
+		l.Debug(ioDebug)
 		editParams := &bot.EditMessageReplyMarkupParams{
 			ChatID:      msg.Chat.ID,
 			MessageID:   msg.ID,

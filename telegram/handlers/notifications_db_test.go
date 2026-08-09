@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"path/filepath"
 	"testing"
 	"time"
@@ -63,8 +62,7 @@ func TestNotificationRows(t *testing.T) {
 	db := newTestDB(t)
 	listenerID, eventID := seedNotificationData(t, db)
 
-	ctx := context.Background()
-	rows, err := notificationRows(db, ctx, 12345)
+	rows, err := notificationRows(db, 12345)
 	if err != nil {
 		t.Fatalf("notificationRows failed: %v", err)
 	}
@@ -88,13 +86,13 @@ func TestNotificationRows(t *testing.T) {
 		EventID:    eventID,
 		MutedAt:    time.Now(),
 	}
-	if err := db.Clauses(clause.OnConflict{
+	if err = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "listener_id"}, {Name: "event_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"muted_at"}),
 	}).Create(&mute).Error; err != nil {
 		t.Fatalf("failed to create mute: %v", err)
 	}
-	rows, err = notificationRows(db, ctx, 12345)
+	rows, err = notificationRows(db, 12345)
 	if err != nil {
 		t.Fatalf("notificationRows failed after mute: %v", err)
 	}
@@ -107,9 +105,8 @@ func TestNotificationRowsScopedToChat(t *testing.T) {
 	db := newTestDB(t)
 	seedNotificationData(t, db)
 
-	ctx := context.Background()
 	// A different chat must see no rows.
-	rows, err := notificationRows(db, ctx, 99999)
+	rows, err := notificationRows(db, 99999)
 	if err != nil {
 		t.Fatalf("notificationRows failed: %v", err)
 	}

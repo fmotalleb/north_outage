@@ -81,7 +81,7 @@ func listen(ctx context.Context, b *bot.Bot, update *models.Update) {
 	l.Debug("saving listener to db", zap.Any("listener", listener))
 	if err := db.Save(listener).Error; err != nil {
 		l.Error("failed to save listener to db", zap.Any("request", listener), zap.Error(err))
-		mp.Text = "خطا در ذخیره‌سازی داده، احتمالا داری آیتم تکراری ذخیره میکنی"
+		mp.Text = "خطا در ذخیره\u200cسازی داده، احتمالا داری آیتم تکراری ذخیره میکنی"
 	} else {
 		l.Debug("listener saved successfully", zap.Uint("listener_id", listener.ID))
 	}

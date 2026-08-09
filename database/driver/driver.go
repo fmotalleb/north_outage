@@ -7,7 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type dialectBuilder = func(*url.URL) (gorm.Dialector, error)
+type dialectBuilder = interface {
+	Build(*url.URL) (gorm.Dialector, error)
+}
 
 var (
 	builders             = map[string]dialectBuilder{}
@@ -23,5 +25,5 @@ func MakeConnection(connection string) (gorm.Dialector, error) {
 	if !ok {
 		return nil, ErrorDialectNotFound
 	}
-	return builder(u)
+	return builder.Build(u)
 }

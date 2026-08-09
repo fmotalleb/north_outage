@@ -12,11 +12,17 @@ import (
 
 //# go:build orm-sqlite
 
+type postgresBuilder struct{}
+
 func init() {
-	builders["postgres"] = posgreSQLBuilder
+	builders["postgres"] = postgresBuilder{}
 }
 
-func posgreSQLBuilder(c *url.URL) (gorm.Dialector, error) {
+func (postgresBuilder) Build(c *url.URL) (gorm.Dialector, error) {
+	return postgresDialector(c), nil
+}
+
+func postgresDialector(c *url.URL) gorm.Dialector {
 	var pass string
 	pass, _ = c.User.Password()
 	query := c.Query()
@@ -33,5 +39,5 @@ func posgreSQLBuilder(c *url.URL) (gorm.Dialector, error) {
 		sslMode,
 		tz,
 	)
-	return postgres.Open(dsn), nil
+	return postgres.Open(dsn)
 }

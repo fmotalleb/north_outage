@@ -105,7 +105,7 @@ func handleSearch(ctx context.Context, b *bot.Bot, update *models.Update, query 
 		out, err = message.EvaluateMessageTemplate(message.Search, data, update)
 		if err != nil {
 			l.Error("failed to evaluate search template", zap.Error(err))
-			mp.Text = "خطایی در نمایش خروجی پیش اومده"
+			mp.Text = renderErrorText
 		} else {
 			l.Debug("search template evaluated", zap.Int("result_count", len(events)))
 			mp.Text = out

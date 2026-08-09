@@ -15,12 +15,12 @@ func TestIsCommand(t *testing.T) {
 		command string
 		want    bool
 	}{
-		{name: "plain", text: "search", command: "search", want: false},
-		{name: "basic", text: "/search", command: "search", want: true},
-		{name: "with args", text: "/search foo", command: "search", want: true},
-		{name: "with mention", text: "/search@north_outage_bot foo", command: "search", want: true},
-		{name: "different command", text: "/help", command: "search", want: false},
-		{name: "mid text", text: "hello /search foo", command: "search", want: false},
+		{name: "plain", text: searchCommand, command: searchCommand, want: false},
+		{name: "basic", text: "/search", command: searchCommand, want: true},
+		{name: "with args", text: "/search foo", command: searchCommand, want: true},
+		{name: "with mention", text: "/search@north_outage_bot foo", command: searchCommand, want: true},
+		{name: "different command", text: "/help", command: searchCommand, want: false},
+		{name: "mid text", text: "hello /search foo", command: searchCommand, want: false},
 	}
 
 	for _, tt := range tests {
@@ -46,11 +46,11 @@ func TestCommandArgument(t *testing.T) {
 		command string
 		want    string
 	}{
-		{name: "simple", text: "/search foo bar", command: "search", want: "foo bar"},
-		{name: "leading space", text: "  /search   foo", command: "search", want: "foo"},
-		{name: "mention", text: "/search@north_outage_bot foo", command: "search", want: "foo"},
-		{name: "no args", text: "/search", command: "search", want: ""},
-		{name: "wrong command", text: "/help foo", command: "search", want: ""},
+		{name: "simple", text: "/search foo bar", command: searchCommand, want: "foo bar"},
+		{name: "leading space", text: "  /search   foo", command: searchCommand, want: "foo"},
+		{name: "mention", text: "/search@north_outage_bot foo", command: searchCommand, want: "foo"},
+		{name: "no args", text: "/search", command: searchCommand, want: ""},
+		{name: "wrong command", text: "/help foo", command: searchCommand, want: ""},
 	}
 
 	for _, tt := range tests {

@@ -76,11 +76,13 @@ type mmIntegration struct {
 	Context map[string]any `json:"context"`
 }
 
+const responseTypeEphemeral = "ephemeral"
+
 func commandHandler(c echo.Context) error {
 	req, err := parseSlashRequest(c.Request())
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "invalid command payload",
 		})
 	}
@@ -96,7 +98,7 @@ func commandHandler(c echo.Context) error {
 	if cfg := activeCfg; cfg != nil && cfg.Mattermost.CommandToken != "" && req.Token != cfg.Mattermost.CommandToken {
 		l.Warn("unauthorized mm command", zap.String("token", req.Token))
 		return c.JSON(http.StatusUnauthorized, mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "unauthorized",
 		})
 	}
@@ -106,15 +108,15 @@ func commandHandler(c echo.Context) error {
 
 	switch cmd {
 	case "help", "start":
-		return c.JSON(http.StatusOK, makeResponse(req, helpText(req)))
+		return c.JSON(http.StatusOK, makeResponse(helpText(req)))
 	case "version":
-		return c.JSON(http.StatusOK, makeResponse(req, git.String()))
+		return c.JSON(http.StatusOK, makeResponse(git.String()))
 	case "search":
 		return c.JSON(http.StatusOK, handleSearch(req))
 	case "listen":
 		return c.JSON(http.StatusOK, handleDirectListen(req))
 	default:
-		return c.JSON(http.StatusOK, makeResponse(req, helpText(req)))
+		return c.JSON(http.StatusOK, makeResponse(helpText(req)))
 	}
 }
 
@@ -122,7 +124,7 @@ func actionHandler(c echo.Context) error {
 	req, err := parseActionRequest(c.Request())
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "invalid action payload",
 		})
 	}
@@ -140,7 +142,7 @@ func actionHandler(c echo.Context) error {
 		return c.JSON(http.StatusOK, handleListenAction(req))
 	default:
 		return c.JSON(http.StatusOK, mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "unknown action",
 		})
 	}
@@ -202,7 +204,7 @@ func readActionPayload(r *http.Request) ([]byte, error) {
 	return []byte(payload), nil
 }
 
-func makeResponse(req *slashCommandRequest, text string) mattermostResponse {
+func makeResponse(text string) mattermostResponse {
 	return mattermostResponse{
 		ResponseType: "in_channel",
 		Text:         text,
@@ -222,7 +224,7 @@ func handleSearch(req *slashCommandRequest) mattermostResponse {
 	search := req.Text
 	if search == "" {
 		return mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "Use /search <address>.",
 		}
 	}
@@ -230,7 +232,7 @@ func handleSearch(req *slashCommandRequest) mattermostResponse {
 	events, err := fetchEvents(search)
 	if err != nil {
 		return mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "failed to fetch outage data",
 		}
 	}
@@ -242,7 +244,7 @@ func handleSearch(req *slashCommandRequest) mattermostResponse {
 		out = "موردی یافت نشد"
 	}
 
-	resp := makeResponse(req, out)
+	resp := makeResponse(out)
 	if len(events) > 0 {
 		resp.Attachments = []mmAttachment{{
 			Fallback: "listen options",
@@ -266,7 +268,7 @@ func handleDirectListen(req *slashCommandRequest) mattermostResponse {
 	fields := strings.Fields(req.Text)
 	if len(fields) < 2 {
 		return mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "Use /listen <city> <search text>.",
 		}
 	}
@@ -280,7 +282,7 @@ func handleListenAction(req *actionRequest) mattermostResponse {
 	search := toString(req.Context["search"])
 	if city == "" || search == "" {
 		return mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "This action expired. Please search again.",
 		}
 	}
@@ -296,12 +298,12 @@ func storeListener(channelID, rootID, city, search string) mattermostResponse {
 	listener.MattermostRID = rootID
 	if err := db.Save(listener).Error; err != nil {
 		return mattermostResponse{
-			ResponseType: "ephemeral",
+			ResponseType: responseTypeEphemeral,
 			Text:         "failed to save listener",
 		}
 	}
 	return mattermostResponse{
-		ResponseType: "ephemeral",
+		ResponseType: responseTypeEphemeral,
 		Text:         "I will notify this channel when that outage appears.",
 	}
 }
@@ -403,8 +405,8 @@ func formatMMNotification(ctx context.Context, ev *nmodels.Event, notifyWeather 
 	return out
 }
 
-func bindToChannel(ctx context.Context, l *zap.Logger, client *http.Client, cfg *config.Config, nc <-chan nmodels.Notification) {
-	ctx, l = log.AsNamedChild(ctx, "MattermostBinder")
+func bindToChannel(ctx context.Context, client *http.Client, cfg *config.Config, nc <-chan nmodels.Notification) {
+	ctx, l := log.AsNamedChild(ctx, "MattermostBinder")
 	base := apiBase()
 	if base == nil {
 		l.Warn("mattermost server url is not configured")
