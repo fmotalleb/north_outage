@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
  * - Writes the value to localStorage on every change.
  * - Listens for the `storage` event so updates in another tab sync here too.
  *
- * Optionally takes a `schema` (same shape as the old useUrlState):
+ * Optionally takes a `schema` for validating persisted values:
  *   schema = {
  *     city:    { default: 'all' },
  *     status:  { default: 'all', values: ['all', 'active', 'upcoming', 'past'] },

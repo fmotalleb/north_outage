@@ -1,6 +1,10 @@
 // Coordinates for cities in Mazandaran province, Iran (IRST, +03:30).
 // Used as a fallback when geocoding fails. Keys MUST match the `city` field
 // returned by the /api/events endpoint (Persian).
+
+// Default city shown (and reset to) when no filters are set.
+export const DEFAULT_CITY = 'ساری'
+
 export const CITY_COORDS = {
   "آمل": {
     "latitude": 36.4696,

@@ -1,4 +1,5 @@
 import Dropdown from './Dropdown'
+import { DEFAULT_CITY } from '../data/cityCoordinates'
 
 export default function FilterBar({
   cities,
@@ -14,10 +15,6 @@ export default function FilterBar({
   const update = (k) => (v) => setFilters((f) => ({ ...f, [k]: v }))
 
   const cityOptions = cities.map((c) => ({ value: c, label: c }))
-  //  [
-  //   { value: 'all', label: 'همه شهرها' },
-  //   ...cities.map((c) => ({ value: c, label: c })),
-  // ]
   const statusOptions = [
     { value: 'all', label: 'همه وضعیت‌ها' },
     { value: 'active', label: 'در جریان' },
@@ -39,13 +36,13 @@ export default function FilterBar({
   ]
 
   const hasActiveFilter =
-    filters.city !== 'all' ||
+    filters.city !== DEFAULT_CITY ||
     filters.status !== 'all' ||
     filters.q.trim() !== '' ||
     filters.date !== 'all'
 
   const reset = () =>
-    setFilters({ city: 'ساری', status: 'all', q: '', date: 'all' })
+    setFilters({ city: DEFAULT_CITY, status: 'all', q: '', date: 'all' })
 
   return (
     <section className="card p-4 md:p-5">

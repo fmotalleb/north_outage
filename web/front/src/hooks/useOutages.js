@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
-import { validateList, EVENT_SCHEMA } from '../utils/validateApi'
+import { fetchEventList } from '../utils/api'
+import { DEFAULT_CITY } from '../data/cityCoordinates'
 
-const ENDPOINT = '/api/events'
-
-export function useOutages(city = "ساری") {
+export function useOutages(city = DEFAULT_CITY) {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -12,12 +11,7 @@ export function useOutages(city = "ساری") {
     setLoading(true)
     setError(null)
     try {
-      const r = await fetch(ENDPOINT + `?city=${city}`, { signal })
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      const j = await r.json()
-      const list = Array.isArray(j) ? j : Array.isArray(j?.data) ? j.data : []
-      validateList(list, EVENT_SCHEMA, '/api/events response')
-      list.sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
+      const list = await fetchEventList(city, { signal })
       setData(list)
     } catch (e) {
       if (e.name !== 'AbortError') {

@@ -8,13 +8,13 @@ import InstallButton from './components/InstallButton'
 import { useOutages } from './hooks/useOutages'
 import { useLocalState } from './hooks/useLocalStorage'
 import { useFavorites, getLocationId } from './hooks/useFavorites'
-import { getKnownCities } from './data/cityCoordinates'
+import { getKnownCities, DEFAULT_CITY } from './data/cityCoordinates'
 import { outageStatus, durationMinutes } from './utils/dateUtils'
 import { validateShape, UPDATED_AT_SCHEMA } from './utils/validateApi'
 
 // Schema for localStorage validation
 const SCHEMA = {
-  city: { default: 'ساری' },
+  city: { default: DEFAULT_CITY },
   status: { default: 'all', values: ['all', 'active', 'upcoming', 'past', 'active-upcoming'] },
   date: { default: 'all', values: ['all', 'today', 'tomorrow', 'week'] },
   sort: { default: 'start_asc', values: ['start_asc', 'start_desc', 'duration_desc', 'city'] },
@@ -23,7 +23,7 @@ const SCHEMA = {
 }
 
 const DEFAULTS = {
-  city: 'ساری',
+  city: DEFAULT_CITY,
   status: 'all',
   q: '',
   date: 'all',
@@ -36,6 +36,9 @@ const STORAGE_KEY = 'outage-tracker.filters.v1'
 export default function App() {
   const [state, updateState] = useLocalState(STORAGE_KEY, SCHEMA)
   const [lastUpdated, setLastUpdated] = useState(null)
+  // Which outage card's weather modal is open. Kept as plain component state
+  // (not persisted) so a previously expanded card doesn't reopen on reload.
+  const [expandedId, setExpandedId] = useState(null)
   const [now, setNow] = useState(() => new Date())
   const {
     favoriteOutages,
@@ -71,7 +74,6 @@ export default function App() {
 
   const sort = state.sort ?? DEFAULTS.sort
   const providerId = state.provider ?? DEFAULTS.provider
-  const expandedId = state.open ?? null
 
   const setFilters = (patch) => {
     if (typeof patch === 'function') patch = patch(filters)
@@ -79,7 +81,6 @@ export default function App() {
   }
   const setSort = (v) => updateState({ sort: v })
   const setProviderId = (v) => updateState({ provider: v })
-  const setExpandedId = (v) => updateState({ open: v })
 
   // Tick "now" so active/upcoming/past recompute every 30s
   useEffect(() => {

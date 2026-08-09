@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 /**
@@ -38,6 +38,8 @@ export default function Dropdown({
   const wrapRef = useRef(null)
   const buttonRef = useRef(null)
   const menuRef = useRef(null)
+  const uid = useId()
+  const listboxId = `${uid}-listbox`
 
   const normalized = options.map((o) =>
     typeof o === 'string' ? { value: o, label: o } : o,
@@ -156,7 +158,9 @@ export default function Dropdown({
           <div
             ref={menuRef}
             role="listbox"
+            id={listboxId}
             tabIndex={-1}
+            aria-activedescendant={activeIdx >= 0 ? `${listboxId}-${activeIdx}` : undefined}
             style={{
               position: 'fixed',
               top: menuPos.top,
@@ -183,6 +187,7 @@ export default function Dropdown({
                     <li
                       key={opt.value}
                       role="option"
+                      id={`${listboxId}-${i}`}
                       aria-selected={isSelected}
                       data-active={isActive}
                       onMouseEnter={() => setActiveIdx(i)}
@@ -244,6 +249,7 @@ export default function Dropdown({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-controls={open ? listboxId : undefined}
         className={`w-full flex items-center gap-2 rounded-xl bg-white/5 border ps-3.5 pe-9 py-2 text-sm text-start transition
           focus:outline-none focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400/40
           ${

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { outageStatus } from '../utils/dateUtils'
+import { fetchEventList } from '../utils/api'
 
 /** Build a stable location key from city + address */
 export function getLocationId(outage) {
@@ -84,19 +85,13 @@ export function useFavorites() {
 
     try {
       const results = await Promise.allSettled(
-        cities.map((city) =>
-          fetch(`/api/events?city=${city}`).then((r) => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`)
-            return r.json()
-          }),
-        ),
+        cities.map((city) => fetchEventList(city)),
       )
 
       let matched = []
       for (const result of results) {
         if (result.status !== 'fulfilled') continue
-        const j = result.value
-        const list = Array.isArray(j) ? j : Array.isArray(j?.data) ? j.data : []
+        const list = result.value
         for (const item of list) {
           const locId = getLocationId(item)
           if (locationSet.has(locId)) {
@@ -171,11 +166,6 @@ export function useFavorites() {
     [favorites],
   )
 
-  const clearAllFavorites = useCallback(() => {
-    setFavorites([])
-    setFavoriteOutages([])
-  }, [])
-
   return {
     favorites,
     favoriteOutages,
@@ -184,6 +174,5 @@ export function useFavorites() {
     removeFavorite,
     isFavorite,
     refreshFavorites,
-    clearAllFavorites,
   }
 }

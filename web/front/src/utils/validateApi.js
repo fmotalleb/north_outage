@@ -128,17 +128,3 @@ export function validateList(arr, schema, label, maxSample = 3) {
 
   return problems > 0
 }
-
-/**
- * Convenience: validate a response value that could be an array or a single object.
- * Calls validateList for arrays and validateShape for objects.
- *
- * @param {object|object[]} data
- * @param {object}          schema
- * @param {string}          label
- * @returns {boolean}
- */
-export function validateResponse(data, schema, label) {
-  if (Array.isArray(data)) return validateList(data, schema, label)
-  return validateShape(data, schema, label)
-}

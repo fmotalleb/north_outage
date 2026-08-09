@@ -2,10 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import { getProvider } from '../utils/weatherProviders'
 
 // Simple in-memory cache so we don't hammer the API when filtering.
+// Bounded to CACHE_MAX entries; oldest entries are evicted first.
 const cache = new Map()
+const CACHE_MAX = 50
 
-function cacheKey(providerId, city, startISO) {
-  return `${providerId}|${city}|${startISO}`
+function cacheSet(key, value) {
+  if (cache.has(key)) cache.delete(key)
+  cache.set(key, value)
+  while (cache.size > CACHE_MAX) {
+    const oldestKey = cache.keys().next().value
+    if (oldestKey === undefined) break
+    cache.delete(oldestKey)
+  }
+}
+
+function cacheKey(providerId, city, startISO, endISO) {
+  return `${providerId}|${city}|${startISO}|${endISO}`
 }
 
 export function useWeather(providerId, { city, lat, lon, startISO, endISO, enabled = true }) {
@@ -20,7 +32,7 @@ export function useWeather(providerId, { city, lat, lon, startISO, endISO, enabl
     if (!enabled || !providerId || !startISO || !endISO || !city) return
 
     const provider = getProvider(providerId)
-    const key = cacheKey(providerId, city, startISO)
+    const key = cacheKey(providerId, city, startISO, endISO)
     if (cache.has(key)) {
       setState({ loading: false, data: cache.get(key), error: null })
       return
@@ -34,7 +46,7 @@ export function useWeather(providerId, { city, lat, lon, startISO, endISO, enabl
     provider
       .fetch({ city, lat, lon, startISO, endISO, signal: ctrl.signal })
       .then((res) => {
-        cache.set(key, res)
+        cacheSet(key, res)
         if (!ctrl.signal.aborted) setState({ loading: false, data: res, error: null })
       })
       .catch((e) => {

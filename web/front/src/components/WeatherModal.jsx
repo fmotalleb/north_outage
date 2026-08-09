@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useWeather } from '../hooks/useWeather'
 import { getCoords } from '../data/cityCoordinates'
@@ -109,14 +109,47 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
     if (open) setVersion((v) => v + 1)
   }, [open, outage?.unique_hash])
 
-  // Close on Esc
+  const dialogRef = useRef(null)
+  const returnFocusRef = useRef(null)
+
+  // Close on Esc + trap focus inside the dialog while open.
   useEffect(() => {
     if (!open) return
+    returnFocusRef.current = document.activeElement
     function onKey(e) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key === 'Tab') {
+        const dialog = dialogRef.current
+        if (!dialog) return
+        const focusables = dialog.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        )
+        if (focusables.length === 0) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        const active = document.activeElement
+        if (e.shiftKey) {
+          if (active === first || !dialog.contains(active)) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else if (active === last || !dialog.contains(active)) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    // Move focus into the dialog so screen readers announce it.
+    dialogRef.current?.focus?.()
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      // Restore focus to the element that opened the modal.
+      returnFocusRef.current?.focus?.()
+    }
   }, [open, onClose])
 
   // Lock body scroll while open
@@ -147,7 +180,9 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
 
       {/* Dialog */}
       <div
-        className="relative w-full max-w-md rounded-2xl border border-white/10 shadow-2xl shadow-black/60 overflow-hidden"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative w-full max-w-md rounded-2xl border border-white/10 shadow-2xl shadow-black/60 overflow-hidden focus:outline-none"
         style={{
           background:
             'linear-gradient(180deg, rgba(27,36,56,0.97), rgba(12,18,32,0.97))',

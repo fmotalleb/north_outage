@@ -1,11 +1,7 @@
 // Date utilities. The outage timestamps use Iran time (IRST, +03:30),
 // but we render in the user's local timezone for clarity.
 
-export function parseISO(iso) {
-  return new Date(iso)
-}
-
-export function formatDateTime(iso,showDate = true, opts = {}) {
+export function formatDateTime(iso, showDate = true, opts = {}) {
   if (!iso) return '—'
   const d = new Date(iso)
   const dateOpts = {
@@ -37,16 +33,6 @@ export function formatTimeOnly(iso) {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-  }).format(d)
-}
-
-export function formatDateOnly(iso) {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  return new Intl.DateTimeFormat(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
   }).format(d)
 }
 
