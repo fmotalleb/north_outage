@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -9,6 +10,15 @@ import (
 
 	"github.com/fmotalleb/north_outage/database"
 	"github.com/fmotalleb/north_outage/models"
+)
+
+const (
+	// defaultEventLimit caps the number of events returned when no limit
+	// query parameter is supplied, so a bare request cannot dump the whole
+	// table.
+	defaultEventLimit = 1000
+	// maxEventLimit is the hard cap for an explicit limit parameter.
+	maxEventLimit = 10000
 )
 
 func init() {
@@ -33,24 +43,36 @@ func events(c echo.Context) error {
 
 	search := c.QueryParam("search")
 	if search != "" {
-		db = db.Where("address LIKE ?", "%"+search+"%")
+		db = db.Where("address LIKE ? ESCAPE '\\'", "%"+escapeLike(search)+"%")
 	}
 
-	limit := c.QueryParam("limit")
-	lv := cast.ToInt(limit)
-	if lv > 0 {
-		db = db.Limit(lv)
+	limit := cast.ToInt(c.QueryParam("limit"))
+	if limit <= 0 {
+		limit = defaultEventLimit
 	}
+	if limit > maxEventLimit {
+		limit = maxEventLimit
+	}
+	db = db.Limit(limit)
 
 	var events []models.Event
 	result := db.Find(&events)
 	if result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": result.Error.Error()})
 	}
-	if len(events) == 0 {
-		return c.JSON(http.StatusNotFound, events)
-	}
 	return c.JSON(http.StatusOK, events)
+}
+
+// escapeLike escapes LIKE wildcards in user input so search terms are matched
+// literally instead of acting as pattern characters.
+func escapeLike(s string) string {
+	if !strings.ContainsAny(s, `\%_`) {
+		return s
+	}
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `%`, `\%`)
+	s = strings.ReplaceAll(s, `_`, `\_`)
+	return s
 }
 
 func updatedAt(c echo.Context) error {
