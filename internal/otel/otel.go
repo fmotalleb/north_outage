@@ -24,11 +24,12 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/fmotalleb/north_outage/config"
 )
 
-const instrumentScope = "north_outage"
+const serviceName = "north_outage"
 
 // collectorTP is the always-sampled provider used by the collector flow.
 // It is nil until Init registers one; when tracing is disabled it stays
@@ -56,7 +57,7 @@ func Init(ctx context.Context, cfg config.Tracing) (shutdown func(context.Contex
 
 	res, err = resource.Merge(resource.Default(), resource.NewWithAttributes(
 		res.SchemaURL(),
-		semconv.ServiceName("north_outage"),
+		semconv.ServiceName(serviceName),
 	))
 	if err != nil {
 		return nil, err
@@ -106,7 +107,7 @@ func Tracer(name string) trace.Tracer {
 // provider, or a no-op tracer when tracing is disabled.
 func CollectorTracer(name string) trace.Tracer {
 	if collectorTP == nil {
-		return trace.NewNoopTracerProvider().Tracer(name)
+		return noop.NewTracerProvider().Tracer(name)
 	}
 	return collectorTP.Tracer(name)
 }

@@ -2,7 +2,7 @@
 🏙️ شهر: {{ .event.City }}
 📍 آدرس: {{ .event.Address }}
 🗓️ روز: {{ .event.Start | relDate }}
-⏰ ساعت: {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | fanum }} تا {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | fanum }}
+⏰ ساعت: {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | faNum }} تا {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | faNum }}
 {{- if .weather }}
 🌤️ وضعیت هوا: {{ .weather }}
 {{- end }}

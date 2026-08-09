@@ -13,14 +13,14 @@ import (
 var funcs = map[string]any{
 	"toJalali": toJalali,
 	"jFormat":  jFormat,
-	"fanum":    faNum,
+	"faNum":    faNum,
 	"relDate":  relativeDate,
 	"reltime":  relTime,
 	"add":      add,
 }
 
 // EvaluateTemplate evaluates a template string with the provided data using the
-// built-in custom functions (toJalali, jFormat, fanum, relDate).
+// built-in custom functions (toJalali, jFormat, faNum, relDate).
 func EvaluateTemplate(tmplt string, data map[string]any) (string, error) {
 	if data == nil {
 		data = make(map[string]any)
@@ -72,7 +72,7 @@ func add(a, b int) int {
 // combining units where sensible, e.g. "۱ ساعت و ۱۲ دقیقه دیگه",
 // "۳ ساعت پیش", "لحظاتی دیگه".
 func relTime(t time.Time) string {
-	diff := t.Sub(time.Now())
+	diff := time.Until(t)
 	future := diff >= 0
 	if !future {
 		diff = -diff

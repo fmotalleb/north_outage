@@ -1,7 +1,7 @@
 📋 <b>لیست مانیتور شده‌های شما</b>:
 
 {{- range $i, $li := .listeners }}
-{{ add $i 1 | fanum }}. 🏙 <b>{{ $li.City }}</b>
+{{ add $i 1 | faNum }}. 🏙 <b>{{ $li.City }}</b>
    🔍 {{ $li.SearchTerm }}
 
 {{- end }}

@@ -5,7 +5,7 @@
 {{- range $e := .events }}
 ---
 🏙️ <b>{{ $e.City }}</b> — {{ $e.Address }}
-🗓️ {{ $e.Start | relDate }}، {{ $e.Start | jFormat "2006/01/02" | fanum }}
-⏰ از {{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | fanum }} تا {{ $e.EndClock }}{{ $e.End | jFormat "15:04" | fanum }}
+🗓️ {{ $e.Start | relDate }}، {{ $e.Start | jFormat "2006/01/02" | faNum }}
+⏰ از {{ $e.StartClock }}{{ $e.Start | jFormat "15:04" | faNum }} تا {{ $e.EndClock }}{{ $e.End | jFormat "15:04" | faNum }}
 {{- end }}
 {{- end }}
