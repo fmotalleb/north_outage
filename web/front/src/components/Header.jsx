@@ -20,11 +20,11 @@ export default function Header({ total, active, upcoming, past, lastUpdated }) {
               </div>
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-cyan-400/40 to-violet-500/40 blur-md -z-10" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-l from-white via-cyan-100 to-violet-200 bg-clip-text text-transparent">
+            <h1 className="text-[26px] sm:text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-l from-white via-cyan-100 to-violet-200 bg-clip-text text-transparent">
               قطعی‌های برنامه‌ریزی‌شده برق
             </h1>
           </div>
-          <p className="text-slate-400 text-sm md:text-base">
+          <p className="text-slate-400 text-[15px] sm:text-sm md:text-base">
             پایش زنده رویدادهای قطعی برق استان مازندران
             {lastUpdated && (
               <span className="mr-2 text-slate-500">
@@ -41,7 +41,7 @@ export default function Header({ total, active, upcoming, past, lastUpdated }) {
           {stats.map((s) => (
             <div key={s.label} className="card px-3.5 py-2.5 min-w-[110px]">
               <div className="text-sm md:text-[11px] uppercase tracking-wider text-slate-400">{s.label}</div>
-              <div className={`mt-0.5 text-2xl font-bold bg-gradient-to-l ${s.gradient} bg-clip-text text-transparent`}>
+              <div className={`mt-0.5 text-2xl md:text-2xl font-bold bg-gradient-to-l ${s.gradient} bg-clip-text text-transparent`}>
                 {s.value}
               </div>
             </div>

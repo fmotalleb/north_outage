@@ -164,7 +164,7 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-4 animate-slide_up"
+      className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center sm:p-4 animate-slide_up"
       role="dialog"
       aria-modal="true"
       aria-labelledby="weather-modal-title"
@@ -182,14 +182,14 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="relative w-full max-w-md rounded-2xl border border-white/10 shadow-2xl shadow-black/60 overflow-hidden focus:outline-none"
+        className="relative w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl sm:border border-white/10 shadow-2xl shadow-black/60 overflow-hidden focus:outline-none max-h-[92dvh] sm:max-h-none overflow-y-auto"
         style={{
           background:
             'linear-gradient(180deg, rgba(27,36,56,0.97), rgba(12,18,32,0.97))',
         }}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-white/10">
+        <div className="flex items-start justify-between p-4 sm:p-5 border-b border-white/10">
           <div className="min-w-0">
             <h2 id="weather-modal-title" className="text-lg font-bold text-slate-100 flex items-center gap-2">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400 shrink-0">
@@ -198,7 +198,7 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
               </svg>
               هواشناسی بازه قطعی
             </h2>
-            <div className="mt-1 text-xs text-slate-400 truncate">
+            <div className="mt-1 text-[13px] sm:text-xs text-slate-400 break-words">
               {outage.city} · {outage.address?.slice(0, 60)}{outage.address?.length > 60 ? '…' : ''}
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
         </div>
 
         {/* Body */}
-        <div className="p-5" key={version}>
+        <div className="p-4 sm:p-5" key={version}>
           {loading && (
             <div className="space-y-3">
               <div className="h-32 rounded-xl shimmer" />
@@ -229,13 +229,13 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
           )}
 
           {error && !loading && (
-            <div className="text-sm text-rose-300/90 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">
+            <div className="text-[15px] sm:text-sm text-rose-300/90 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2.5">
               خطا در دریافت آب و هوا: {error}
             </div>
           )}
 
           {data && !data.available && !loading && (
-            <div className="text-sm text-slate-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-center">
+            <div className="text-[15px] sm:text-sm text-slate-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-center">
               {data.reason === 'no-coords'
                 ? `مختصاتی برای «${outage.city}» یافت نشد`
                 : 'داده‌ای برای این بازه زمانی موجود نیست'}
@@ -251,7 +251,7 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
                   <div className="text-2xl font-bold text-slate-100">
                     {cloudDescription(data.avgCloud)}
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5">
+                  <div className="text-[13px] sm:text-xs text-slate-400 mt-0.5">
                     پوشش ابر {Number.isFinite(data.avgCloud) ? Math.round(data.avgCloud) : '—'}٪
                   </div>
                 </div>
@@ -259,31 +259,31 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
 
               {/* Stats grid */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-lg bg-gradient-to-l from-orange-500/15 to-rose-500/15 border border-orange-400/25 px-3 py-3 text-center">
-                  <div className="text-[11px] text-orange-300 mb-1">دما</div>
+                <div className="rounded-lg bg-gradient-to-l from-orange-500/15 to-rose-500/15 border border-orange-400/25 px-2 sm:px-3 py-3 text-center">
+                  <div className="text-[12px] sm:text-[11px] text-orange-300 mb-1">دما</div>
                   <div className="text-xl font-bold text-orange-100">
                     {Number.isFinite(data.avgTemp) ? data.avgTemp.toFixed(1) + '°' : '—'}
                   </div>
                   {Number.isFinite(data.peakTemp) && (
-                    <div className="text-[10px] text-slate-400 mt-1">اوج {data.peakTemp.toFixed(1)}°</div>
+                    <div className="text-[11px] sm:text-[10px] text-slate-400 mt-1">اوج {data.peakTemp.toFixed(1)}°</div>
                   )}
                 </div>
-                <div className="rounded-lg bg-gradient-to-l from-cyan-500/15 to-blue-500/15 border border-cyan-400/25 px-3 py-3 text-center">
-                  <div className="text-[11px] text-cyan-300 mb-1">رطوبت</div>
+                <div className="rounded-lg bg-gradient-to-l from-cyan-500/15 to-blue-500/15 border border-cyan-400/25 px-2 sm:px-3 py-3 text-center">
+                  <div className="text-[12px] sm:text-[11px] text-cyan-300 mb-1">رطوبت</div>
                   <div className="text-xl font-bold text-cyan-100">
                     {Number.isFinite(data.avgHumidity) ? Math.round(data.avgHumidity) + '٪' : '—'}
                   </div>
                   {Number.isFinite(data.peakHumidity) && (
-                    <div className="text-[10px] text-slate-400 mt-1">اوج {Math.round(data.peakHumidity)}٪</div>
+                    <div className="text-[11px] sm:text-[10px] text-slate-400 mt-1">اوج {Math.round(data.peakHumidity)}٪</div>
                   )}
                 </div>
-                <div className="rounded-lg bg-gradient-to-l from-slate-400/15 to-slate-600/15 border border-slate-400/25 px-3 py-3 text-center">
-                  <div className="text-[11px] text-slate-300 mb-1">ابر</div>
+                <div className="rounded-lg bg-gradient-to-l from-slate-400/15 to-slate-600/15 border border-slate-400/25 px-2 sm:px-3 py-3 text-center">
+                  <div className="text-[12px] sm:text-[11px] text-slate-300 mb-1">ابر</div>
                   <div className="text-xl font-bold text-slate-100">
                     {Number.isFinite(data.avgCloud) ? Math.round(data.avgCloud) + '٪' : '—'}
                   </div>
                   {Number.isFinite(data.peakCloud) && (
-                    <div className="text-[10px] text-slate-400 mt-1">اوج {Math.round(data.peakCloud)}٪</div>
+                    <div className="text-[11px] sm:text-[10px] text-slate-400 mt-1">اوج {Math.round(data.peakCloud)}٪</div>
                   )}
                 </div>
               </div>
@@ -303,12 +303,12 @@ export default function WeatherModal({ open, onClose, outage, providerId }) {
               {/* Timeline */}
               {data.sampled.length > 1 && (
                 <div className="mt-4">
-                  <div className="text-[11px] text-slate-400 mb-1.5">نمونه‌های ساعتی</div>
+                  <div className="text-[12px] sm:text-[11px] text-slate-400 mb-1.5">نمونه‌های ساعتی</div>
                   <div className="flex items-stretch gap-1.5 overflow-x-auto pb-1">
                     {data.sampled.slice(0, 8).map((s, i) => (
                       <div
                         key={i}
-                        className="shrink-0 text-[10px] text-slate-300 bg-white/5 border border-white/10 rounded-md px-2 py-1.5 min-w-[72px]"
+                        className="shrink-0 text-[11px] sm:text-[10px] text-slate-300 bg-white/5 border border-white/10 rounded-md px-2 py-1.5 min-w-[72px]"
                       >
                         <div className="font-medium text-slate-200">{formatTimeOnly(s.time)}</div>
                         <div className="text-orange-300 mt-0.5">

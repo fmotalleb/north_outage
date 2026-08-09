@@ -46,18 +46,18 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
         <div className="mt-2 flex flex-col gap-2">
           {/* LINE 1: CITY */}
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="text-sm text-slate-300 whitespace-nowrap shrink-0">
+            <div className="text-[15px] sm:text-sm text-slate-300 whitespace-nowrap shrink-0">
               {outage.city} · {refStart}
             </div>
           </div>
           
           {/* LINE 2: STATUS + WEATHER + FAVORITE */}
-          <div className="flex items-center h-8 overflow-hidden rounded-lg bg-slate-800/40 self-start max-w-full">
+          <div className="flex items-center h-10 sm:h-8 overflow-hidden rounded-lg bg-slate-800/40 self-start max-w-full">
           
             {/* STATUS */}
             <div className={`flex items-center gap-2 px-3 h-full ${meta.cls}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
-              <span className="text-sm md:text-xs leading-none whitespace-nowrap">
+              <span className="text-[15px] sm:text-xs leading-none whitespace-nowrap">
                 {meta.label}
               </span>
             </div>
@@ -65,7 +65,7 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
             {/* WEATHER */}
             <button
               onClick={onToggle}
-              className="flex items-center gap-1 px-3 h-full text-sm md:text-xs text-slate-200 hover:text-slate-100 transition shrink-0"
+              className="flex items-center gap-1 px-3 h-full text-[15px] sm:text-xs sm:text-sm text-slate-200 hover:text-slate-100 transition shrink-0"
               aria-expanded={expanded}
             >
               <svg
@@ -116,21 +116,21 @@ export default function OutageCard({ outage, weatherProviderId, expanded, onTogg
         </div>
 
         {/* FULL WIDTH ADDRESS */}
-        <div className="mt-1 text-sm text-slate-400 w-full leading-relaxed">
+        <div className="mt-1.5 text-[15px] sm:text-sm text-slate-400 w-full leading-relaxed">
           {outage.address}
         </div>
 
         {/* 50/50 PANELS ALWAYS */}
-        <div className="mt-auto pt-4 grid grid-cols-2 gap-3">
+        <div className="mt-auto pt-4 grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
           <div className={`rounded-xl border ${meta.panel} px-3 py-2.5`}>
-            <div className="text-xs md:text-[11px] mb-0.5">شروع قطعی</div>
+            <div className="text-[13px] sm:text-xs md:text-[11px] mb-0.5">شروع قطعی</div>
             <div className={`text-base md:text-sm font-medium ${meta.panelValue}`}>
               {formatDateTime(outage.start_at)}
             </div>
           </div>
 
           <div className={`rounded-xl border ${meta.panel} px-3 py-2.5`}>
-            <div className="text-xs md:text-[11px] mb-0.5">پایان قطعی</div>
+            <div className="text-[13px] sm:text-xs md:text-[11px] mb-0.5">پایان قطعی</div>
             <div className={`text-base md:text-sm font-medium ${meta.panelValue}`}>
               {formatDateTime(outage.end_at)}
             </div>

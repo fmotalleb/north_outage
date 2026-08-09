@@ -196,7 +196,7 @@ export default function Dropdown({
                         setOpen(false)
                         buttonRef.current?.focus()
                       }}
-                      className={`relative flex items-center gap-2 px-3 py-2 mx-1 rounded-lg cursor-pointer text-sm select-none transition
+                      className={`relative flex items-center gap-2 px-3 py-2.5 mx-1 rounded-lg cursor-pointer text-[15px] sm:text-sm select-none transition
                         ${isSelected ? 'text-cyan-100' : 'text-slate-200'}
                         ${
                           isActive
@@ -250,7 +250,7 @@ export default function Dropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}
-        className={`w-full flex items-center gap-2 rounded-xl bg-white/5 border ps-3.5 pe-9 py-2 text-sm text-start transition
+        className={`w-full flex items-center gap-2 rounded-xl bg-white/5 border ps-3.5 pe-9 py-2.5 sm:py-2 text-[15px] sm:text-sm text-start transition
           focus:outline-none focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400/40
           ${
             open

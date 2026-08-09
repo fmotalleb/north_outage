@@ -50,7 +50,7 @@ export default function OutageList({
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-slate-100 mb-1">خطا در دریافت اطلاعات</h3>
-        <p className="text-sm text-slate-400 mb-4">{error}</p>
+        <p className="text-[15px] sm:text-sm text-slate-400 mb-4 break-words">{error}</p>
         <button className="btn-primary" onClick={onRetry}>
           تلاش دوباره
         </button>
@@ -68,7 +68,7 @@ export default function OutageList({
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-slate-100 mb-1">نتیجه‌ای یافت نشد</h3>
-        <p className="text-sm text-slate-400">با فیلترهای فعلی هیچ رویدادی پیدا نشد. فیلترها را تغییر دهید.</p>
+        <p className="text-[15px] sm:text-sm text-slate-400">با فیلترهای فعلی هیچ رویدادی پیدا نشد. فیلترها را تغییر دهید.</p>
       </div>
     )
   }

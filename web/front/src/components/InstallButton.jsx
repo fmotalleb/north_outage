@@ -43,9 +43,9 @@ export default function InstallButton() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          <span className="text-sm font-semibold">اپلیکیشن نصب شد</span>
+          <span className="text-[15px] sm:text-sm font-semibold">اپلیکیشن نصب شد</span>
         </div>
-        <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+        <p className="text-[13px] sm:text-xs text-slate-400 mt-1.5 leading-relaxed">
           می‌توانید از منوی برنامه‌های دستگاه خود «قطعی برق» را اجرا کنید.
         </p>
       </section>
@@ -56,7 +56,7 @@ export default function InstallButton() {
 
   return (
     <section className="card p-4 md:p-5">
-      <p className="text-xs text-slate-400 mb-3 leading-relaxed">
+      <p className="text-[13px] sm:text-xs text-slate-400 mb-3 leading-relaxed">
         اپلیکیشن تحت وب را روی دستگاه خود نصب کنید تا در حالت تمام‌صفحه و
         بدون نوار آدرس در دسترس باشد.
       </p>

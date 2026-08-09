@@ -179,8 +179,8 @@ export default function App() {
   }, [filtered, sort])
 
   return (
-    <div className="min-h-screen px-4 md:px-6 py-6 md:py-8 max-w-[1400px] mx-auto">
-      <div className="space-y-6">
+    <div className="min-h-screen px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 max-w-[1400px] mx-auto">
+      <div className="space-y-4 sm:space-y-6">
         <Header
           total={counts.total}
           active={counts.active}
@@ -230,7 +230,7 @@ export default function App() {
             <InstallButton />
             <WeatherProviderSelector value={providerId} onChange={setProviderId} />
             <section className="card p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-slate-100 mb-2 flex items-center gap-2">
+              <h3 className="text-[15px] sm:text-sm font-semibold text-slate-100 mb-2 flex items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="16" x2="12" y2="12" />
@@ -238,7 +238,7 @@ export default function App() {
                 </svg>
                 راهنما
               </h3>
-              <ul className="text-xs text-slate-400 space-y-1.5 leading-relaxed">
+              <ul className="text-[13px] sm:text-xs text-slate-400 space-y-2 leading-relaxed">
                 <li>· روی «هواشناسی» هر رویداد بزنید تا دما، رطوبت و پوشش ابر نمایش داده شود.</li>
                 <li>· ارائه‌دهنده آب و هوا از ستون سمت چپ (برای موبایل پایین صفحه) قابل تغییر است.</li>
                 <li>· فیلترها در حافظه مرورگر ذخیره می‌شوند و در بازدید بعدی بازمی‌گردند.</li>
@@ -248,7 +248,7 @@ export default function App() {
           </aside>
         </div>
 
-        <footer className="text-center text-[11px] text-slate-500 pt-4 pb-2">
+        <footer className="text-center text-[12px] sm:text-[11px] text-slate-500 pt-4 pb-2">
           CopyRight{" "}
           <a
             className="text-slate-400 hover:text-cyan-300 transition"

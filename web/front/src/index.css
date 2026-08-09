@@ -63,6 +63,33 @@ body,
   height: 100%;
 }
 
+/* Prevent iOS Safari from auto-inflating text (we control sizes explicitly).
+   Also removes the grey tap-highlight flash on mobile taps. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Respect notched screens / home-indicator safe areas on mobile. */
+body {
+  padding:
+    env(safe-area-inset-top)
+    env(safe-area-inset-right)
+    env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   margin: 0;
   font-family: 'Vazir', system-ui, -apple-system, sans-serif;
@@ -102,10 +129,10 @@ body {
     @apply glass rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)];
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm md:text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] sm:text-sm md:text-xs font-medium;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-200 select-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px] sm:text-sm font-medium transition-all duration-200 select-none;
   }
   .btn-primary {
     @apply btn bg-gradient-to-l from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:brightness-110 active:scale-[0.98];
@@ -114,14 +141,14 @@ body {
     @apply btn bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10;
   }
   .input {
-    @apply w-full rounded-xl bg-white/5 border border-white/10 px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500
+    @apply w-full rounded-xl bg-white/5 border border-white/10 px-3.5 py-2.5 text-[15px] sm:text-sm text-slate-100 placeholder-slate-500
            focus:outline-none focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400/40 transition;
   }
   .select {
     @apply input appearance-none pr-9 cursor-pointer;
   }
   .label {
-    @apply block text-sm md:text-xs font-medium text-slate-400 mb-1.5;
+    @apply block text-base sm:text-sm md:text-xs font-medium text-slate-400 mb-1.5;
   }
 }
 
