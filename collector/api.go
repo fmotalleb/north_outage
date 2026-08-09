@@ -67,7 +67,7 @@ var defaultCityMap = map[int]string{
 	87: "ساری",
 }
 
-const defaultBodyTemplate = `{"fromDate":"{{ now | jFormat "2006/01/02" | fanum }}","toDate":"{{ now | dateModify "24h" | jFormat "2006/01/02" | fanum }}","city":-1,"pgds":""}`
+const defaultBodyTemplate = `{"fromDate":"{{ now | jFormat "2006/01/02" | faNum }}","toDate":"{{ now | dateModify "24h" | jFormat "2006/01/02" | faNum }}","city":-1,"pgds":""}`
 
 func fetchData(ctx context.Context) ([]models.Event, error) {
 	ctx, logger := log.AsNamedChild(ctx, "fetchData")
