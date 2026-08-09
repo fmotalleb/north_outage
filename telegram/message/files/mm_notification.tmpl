@@ -1,6 +1,0 @@
-🏙 {{ .event.City }}
-📍 {{ .event.Address }}
-⏰ {{ .event.StartClock }}{{ .event.Start | jFormat "15:04" | faNum }} — {{ .event.EndClock }}{{ .event.End | jFormat "15:04" | faNum }}
-{{- if .weather }}
-🌤{{ .weather }}
-{{- end }}

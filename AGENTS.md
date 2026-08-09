@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Go 1.26 app (module `github.com/fmotalleb/north_outage`) that scrapes electricity-outage data for Mazandaran (Iran), serves a React/Persian UI, and notifies via Telegram/Mattermost.
+Go 1.26 app (module `github.com/fmotalleb/north_outage`) that scrapes electricity-outage data for Mazandaran (Iran), serves a React/Persian UI, and notifies via Telegram.
 
 ## Commands
 
@@ -25,8 +25,8 @@ All tooling is driven by the Makefile. `make ci` runs the whole pipeline: `mod g
 - Config: `config/reader.go` merges TOML config file → env vars → struct defaults. Env names come from struct tags (`HTTP_LISTEN`, `DATABASE`, `TELEGRAM_BOT`, ...). `.env` is autoloaded by godotenv. `collector` settings also live in the same Config (`collector.endpoint` etc.), not in a separate scrapper-go pipeline file — the README's `example/collector.toml`/scrapper-go sections describe a legacy approach.
 - Collector: plain HTTP POST to `collector.endpoint` (default `https://khamooshi.maztozi.ir/api/outages`); request body is built from a template in `collector/api.go` (`internal/template` provides `jFormat`/`faNum`/etc. for Persian/Jalali dates). `ssl_verify` defaults to false on purpose (the site's TLS is currently broken). City IDs are mapped to Persian names in `defaultCityMap`.
 - Storage: GORM. Both sqlite and postgres dialects are registered in `database/driver/*` init()s; the `//# go:build orm-sqlite` lines are plain comments, NOT real build constraints — all dialects are always compiled. SQLite (default `sqlite:///outage.db`) needs cgo.
-- Web: Echo, routes registered via `init()` + `RegisterEndpoint` (see `web/root.go`). Endpoints: `/api/events`, `/api/updated_at`, `/api/up`, Mattermost `/api/mattermost/{command,action}`, and the embedded frontend at `/`.
-- Notifications: events flow collector → channel → `eventToNotificationTransformer` → broadcaster → Telegram/Mattermost subscribers. Integrations only start when their credentials are set (`telegram.key`/`TELEGRAM_BOT`, `mattermost.bot_token`+`server_url`).
+- Web: Echo, routes registered via `init()` + `RegisterEndpoint` (see `web/root.go`). Endpoints: `/api/events`, `/api/updated_at`, `/api/up`, and the embedded frontend at `/`.
+- Notifications: events flow collector → channel → `eventToNotificationTransformer` → broadcaster → Telegram subscribers. Integrations only start when their credentials are set (`telegram.key`/`TELEGRAM_BOT`).
 - `memory.Memory[T]` is a small TTL cache (Pop/Put) used by bot handlers.
 
 ## Conventions

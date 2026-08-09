@@ -13,8 +13,7 @@ import (
 type Config struct {
 	HTTPListenAddr string `mapstructure:"http_listen" env:"HTTP_LISTEN"`
 
-	Telegram   Telegram   `mapstructure:"telegram"`
-	Mattermost Mattermost `mapstructure:"mattermost"`
+	Telegram Telegram `mapstructure:"telegram"`
 
 	DatabaseConnection string `mapstructure:"database" env:"DATABASE" default:"sqlite:///outage.db" validate:"required,uri"`
 
@@ -87,14 +86,6 @@ type Telegram struct {
 	// lists, confirmations) are kept before they are deleted, unless the user
 	// keeps interacting with them.
 	MessageTTL time.Duration `mapstructure:"message_ttl" env:"TELEGRAM_MESSAGE_TTL" default:"1m"`
-}
-
-type Mattermost struct {
-	BotToken     string        `mapstructure:"bot_token" env:"MATTERMOST_BOT_TOKEN"`
-	ServerURL    string        `mapstructure:"server_url" env:"MATTERMOST_SERVER_URL" validate:"omitempty,url"`
-	PublicURL    string        `mapstructure:"public_url" env:"MATTERMOST_PUBLIC_URL" validate:"omitempty,url"`
-	CommandToken string        `mapstructure:"command_token" env:"MATTERMOST_COMMAND_TOKEN"`
-	Timeout      time.Duration `mapstructure:"timeout" env:"MATTERMOST_TIMEOUT" default:"30s" validate:"required"`
 }
 
 type Weather struct {

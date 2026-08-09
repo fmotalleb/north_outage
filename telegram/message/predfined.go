@@ -25,7 +25,6 @@ var (
 	ClearDone       = readOrPanic("clear_done")
 	NotificationNew = readOrPanic("notification_new")
 	NotificationUp  = readOrPanic("notification_upcoming")
-	MMNotification  = readOrPanic("mm_notification")
 	Events          = readOrPanic("events")
 	Notifications   = readOrPanic("notifications")
 	RemoveBtn       = readOrPanic("remove_btn")

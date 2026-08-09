@@ -88,7 +88,7 @@ The app also autoloads `.env` through `github.com/joho/godotenv/autoload`.
 
 Notes:
 
-- `http_listen` controls the web server and also hosts the Mattermost command endpoints.
+- `http_listen` controls the web server and hosts the API + frontend.
 - `database` must be a URI, for example `sqlite:///outage.db` or a PostgreSQL DSN.
 - `collect_cycle` uses cron syntax, so `@hourly` is valid.
 - `collect_timeout`, `collect_on_start_threshold`, and `max_age` are parsed as Go duration strings.
@@ -124,42 +124,6 @@ Telegram setup:
 2. Set `TELEGRAM_BOT` or `telegram.key`.
 3. Optionally set `TELEGRAM_BOT_TIMEOUT`, `TELEGRAM_BOT_PROXY`, and `TELEGRAM_BOT_ENDPOINT`.
 4. Point your users at the bot and use `/search` to create listeners.
-
-### Mattermost Config
-
-Mattermost is enabled when `mattermost.bot_token` and `mattermost.server_url` are set.
-
-| File key | Env var | Purpose | Example |
-| --- | --- | --- | --- |
-| `mattermost.bot_token` | `MATTERMOST_BOT_TOKEN` | Bot account token used to post notifications. | `mm-abc123...` |
-| `mattermost.server_url` | `MATTERMOST_SERVER_URL` | Mattermost site URL used for REST API calls. | `https://mattermost.example.com` |
-| `mattermost.public_url` | `MATTERMOST_PUBLIC_URL` | Public URL used in interactive button callbacks. | `https://bot.example.com` |
-| `mattermost.command_token` | `MATTERMOST_COMMAND_TOKEN` | Optional slash-command verification token. | `secret-token` |
-| `mattermost.timeout` | `MATTERMOST_TIMEOUT` | HTTP timeout for Mattermost requests. | `30s` |
-
-Mattermost behavior:
-
-- `POST /api/mattermost/command` handles slash commands.
-- `POST /api/mattermost/action` handles interactive button callbacks.
-- `/help` and `/start` return the help text.
-- `/search <text>` searches stored outages and returns results with monitoring buttons.
-- `/version` prints the build version.
-- `/listen <city> | <search text>` can store a listener directly if you want to bypass the button flow.
-
-Mattermost setup:
-
-1. Create a bot account in Mattermost and generate a bot token.
-2. Set `MATTERMOST_BOT_TOKEN` and `MATTERMOST_SERVER_URL`.
-3. Set `MATTERMOST_PUBLIC_URL` to the public URL of this app, not the Mattermost site URL.
-4. Create a custom slash command pointing to `POST /api/mattermost/command`.
-5. Configure interactive message buttons to call `POST /api/mattermost/action`.
-6. If you want request validation, set `MATTERMOST_COMMAND_TOKEN` and use the same token in the Mattermost slash command.
-
-Mattermost request flow:
-
-- `/search` posts search results with attachment buttons for cities.
-- Button clicks create a listener for the selected city and search string.
-- Notifications are posted back to the originating Mattermost channel.
 
 ### Tracing Config
 
