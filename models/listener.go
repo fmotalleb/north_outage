@@ -8,7 +8,6 @@ type Listener struct {
 	// ThreadID
 	TelegramTID int64 `gorm:"null" json:"-"`
 
-	// Search Text (sql `like`)
-	SearchTerm string `gorm:"type:text;not null;uniqueIndex:idx_listener_term_city" json:"search_term"`
-	City       string `gorm:"size:255;not null;uniqueIndex:idx_listener_term_city" json:"city"`
+	SearchTerm string `gorm:"type:text;not null" json:"search_term"`
+	City       string `gorm:"size:255;not null" json:"city"`
 }
